@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PicChallenge Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4e6;
+        }
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            max-width: 420px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .screen {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 5rem;
+        }
+        .screen.active {
+            display: block;
+        }
+        .screen::-webkit-scrollbar {
+            width: 8px;
+        }
+        .screen::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 50;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #2563eb;
+            color: #2563eb;
+        }
+        .image-carousel {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .image-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        .carousel-item {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+        }
+    </style>
+</head>
+<body class="p-4 bg-slate-200 flex items-center justify-center min-h-screen">
+
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="p-5 flex items-center justify-between shadow-sm bg-white rounded-t-2xl">
+            <h1 class="text-2xl font-bold text-gray-800">PicChallenge</h1>
+            <button id="profileNav" onclick="showScreen('profileScreen')" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Main Content Screens -->
+        <!-- Blog Posts Screen -->
+        <div id="blogScreen" class="screen p-4">
+            <div id="blogPostsList" class="space-y-4">
+                <!-- Blog posts will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Browse Contests Screen - Now the default Home screen -->
+        <div id="contestBrowseScreen" class="screen p-4 active">
+            <div id="contestList" class="grid grid-cols-2 gap-4">
+                <!-- Contest cards will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <div id="contestDetailScreen" class="screen p-4">
+            <button onclick="showScreen('contestBrowseScreen')" class="mb-4 text-sm text-blue-600 font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Contests
+            </button>
+            <h2 id="contestTitle" class="text-xl font-semibold mb-2 text-gray-800">Contest Title</h2>
+            <p id="contestDates" class="text-sm text-gray-500 mb-4"></p>
+            
+            <!-- Image Carousel Container -->
+            <div class="relative mb-6">
+                <div id="imageCarousel" class="image-carousel flex overflow-x-scroll rounded-xl shadow-lg">
+                    <!-- Images will be dynamically inserted here -->
+                </div>
+                <div class="absolute inset-y-0 left-0 flex items-center">
+                    <button onclick="scrollCarousel(-1)" class="p-2 bg-gray-800 text-white rounded-full opacity-50 hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="absolute inset-y-0 right-0 flex items-center">
+                    <button onclick="scrollCarousel(1)" class="p-2 bg-gray-800 text-white rounded-full opacity-50 hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-xl shadow-lg p-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">How to Vote</h3>
+                <p class="text-gray-600">Place one vote for your favourite contestant everyday.</p>
+            </div>
+            
+            <!-- Contestants Section -->
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Contestants</h3>
+                <div id="contestantsList" class="space-y-4">
+                    <!-- Contestant cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="profileScreen" class="screen p-4">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Join the Contest</h2>
+            <p class="text-gray-600 mb-6">
+                <span class="font-bold">Wish to compete?</span> The contests are open to both aspiring and professional models of all experience levels. Whether you're just starting or looking for more exposure, this is the perfect platform to showcase your talent and win awesome prizes.
+            </p>
+            <p class="text-gray-600 font-semibold mb-4">Register or log in to start participating:</p>
+            <div class="flex space-x-4 mb-4">
+                <button id="registerButton" class="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-green-600 transition-colors">Register</button>
+                <button id="loginButton" class="flex-1 bg-blue-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-blue-600 transition-colors">Log In</button>
+            </div>
+            <button id="logoutButton" class="hidden w-full bg-red-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-red-600 transition-colors">Log Out</button>
+
+            <div id="contestantFeatures" class="hidden mt-6 space-y-4">
+                <button onclick="showScreen('joinContestScreen')" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-green-600 transition-colors">
+                    Join Contest
+                </button>
+                <button onclick="showScreen('mySubmissionsScreen')" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-blue-600 transition-colors">
+                    My Submissions
+                </button>
+            </div>
+        </div>
+
+        <div id="joinContestScreen" class="screen p-4">
+            <button onclick="showScreen('profileScreen')" class="mb-4 text-sm text-blue-600 font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Join
+            </button>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Upcoming Contests</h2>
+            <div id="upcomingContests" class="contest-list">
+                <!-- Contest Card 3 - Upcoming -->
+                <div class="contest-card bg-slate-50 rounded-xl p-4 mb-4 shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-900">Portrait of a Stranger</h3>
+                    <p class="text-sm text-gray-600 mt-1">Capture the human story in a single shot.</p>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-1 rounded-full">Starts in 10 days</span>
+                        <button onclick="showScreen('uploadScreen')" class="bg-purple-500 text-white px-4 py-1.5 rounded-full font-semibold text-sm shadow-md hover:bg-purple-600 transition-colors">Enter Contest</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="uploadScreen" class="screen p-4">
+            <button onclick="showScreen('joinContestScreen')" class="mb-4 text-sm text-blue-600 font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Contests
+            </button>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Upload Photo</h2>
+            <div class="bg-slate-50 rounded-xl p-4 shadow-sm">
+                <input type="text" placeholder="Photo Title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+                <textarea placeholder="Photo Description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"></textarea>
+                <div class="w-full h-4 bg-gray-200 rounded-full mb-4">
+                    <div id="uploadProgress" class="h-full bg-green-500 rounded-full transition-all duration-300 ease-in-out" style="width: 0%;"></div>
+                </div>
+                <button onclick="startUpload()" class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-green-600 transition-colors">
+                    Start Upload
+                </button>
+            </div>
+        </div>
+
+        <div id="mySubmissionsScreen" class="screen p-4">
+            <button onclick="showScreen('profileScreen')" class="mb-4 text-sm text-blue-600 font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Join
+            </button>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">My Submissions</h2>
+            <div class="bg-slate-50 rounded-xl p-4 shadow-sm space-y-4">
+                <div class="flex items-center space-x-4">
+                    <img src="https://placehold.co/100x100/2563eb/ffffff?text=Photo+1" class="w-20 h-20 rounded-lg object-cover">
+                    <div>
+                        <h4 class="font-semibold">Lone Pine at Dusk</h4>
+                        <p class="text-sm text-gray-500">Votes: 45 | Ratings: 4.7</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <img src="https://placehold.co/100x100/fde047/ffffff?text=Photo+3" class="w-20 h-20 rounded-lg object-cover">
+                    <div>
+                        <h4 class="font-semibold">Sunset over lake</h4>
+                        <p class="text-sm text-gray-500">Votes: 12 | Ratings: 3.9</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="p-4 bg-white flex justify-around items-center border-t border-gray-200">
+            <button onclick="showScreen('contestBrowseScreen')" class="nav-button flex flex-col items-center text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0v-9.586a1 1 0 01.293-.707l1.586-1.586a1 1 0 01.707-.293h4.586a1 1 0 01.707.293l1.586 1.586a1 1 0 01.293.707V19a1 1 0 01-1 1h-3" />
+                </svg>
+                <span class="text-xs mt-1 font-medium">Contests</span>
+            </button>
+            <button onclick="showScreen('blogScreen')" class="nav-button flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-8v8m-4-8v8M4 16h16" />
+                </svg>
+                <span class="text-xs mt-1 font-medium">News</span>
+            </button>
+            <button onclick="showScreen('profileScreen')" class="nav-button flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="text-xs mt-1 font-medium">Join</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+
+    </div>
+
+    <script>
+        let isLoggedIn = false;
+        // Sample contest data for demonstration. The "status" field is key for voting.
+        const contestData = {
+            "id": 10,
+            "name": "August-Contest",
+            "start_date": "07\/01\/2025",
+            "end_date": "07\/31\/2025",
+            "vote_start_date": "07\/01\/2025",
+            "register_end_date": "07\/31\/2025",
+            // The original HTML content with multiple images
+            "description": "<img class=\"alignnone size-medium wp-image-943\" src=\"https:\/\/lumiself.co.zw\/modeling\/wp-content\/uploads\/sites\/3\/2025\/05\/Ruth-Madondo-249x300.jpg\" alt=\"\" width=\"249\" height=\"300\" \/><img class=\"alignnone size-medium wp-image-955\" src=\"https:\/\/lumiself.co.zw\/modeling\/wp-content\/uploads\/sites\/3\/2025\/07\/Samantha-Ngwenya-300x300.jpg\" alt=\"\" width=\"300\" height=\"300\" \/><img class=\"alignnone size-medium wp-image-952\" src=\"https:\/\/lumiself.co.zw\/modeling\/wp-content\/uploads\/sites\/3\/2025\/07\/Nicole-Shirichena-257x300.jpg\" alt=\"\" width=\"257\" height=\"300\" \/>",
+            "image_per_user": 3,
+            "vote_frequency": 1,
+            "gallery_layout": 1,
+            "contest_mode": 1,
+            "status": "ended" // Because status is "ended", the vote button will be grayed out.
+        };
+        // Sample data for the new contest grid view
+        const contestDataList = [
+            {
+                id: 10,
+                name: "August-Contest",
+                startDate: "07/01/2025",
+                endDate: "07/31/2025",
+                status: "ended",
+                // Use the real image URLs from the main contestData object
+                description: "<img class=\"alignnone size-medium wp-image-943\" src=\"https:\/\/lumiself.co.zw\/modeling\/wp-content\/uploads\/sites\/3\/2025\/05\/Ruth-Madondo-249x300.jpg\" alt=\"\" width=\"249\" height=\"300\" \/><img class=\"alignnone size-medium wp-image-955\" src=\"https:\/\/lumiself.co.zw\/modeling\/wp-content\/uploads\/sites\/3\/2025\/07\/Samantha-Ngwenya-300x300.jpg\" alt=\"\" width=\"300\" height=\"300\" \/><img class=\"alignnone size-medium wp-image-952\" src=\"https:\/\/lumiself.co.zw\/modeling\/wp-content\/uploads\/sites\/3\/2025\/07\/Nicole-Shirichena-257x300.jpg\" alt=\"\" width=\"257\" height=\"300\" \/>"
+            },
+            {
+                id: 11,
+                name: "Summer Vibes",
+                startDate: "08/15/2025",
+                endDate: "09/15/2025",
+                status: "active",
+                description: `<img src="https://placehold.co/300x200/22c55e/ffffff?text=Summer+Vibes">`
+            },
+            {
+                id: 12,
+                name: "City Lights",
+                startDate: "10/01/2025",
+                endDate: "10/31/2025",
+                status: "upcoming",
+                description: `<img src="https://placehold.co/300x500/eab308/ffffff?text=City+Lights">`
+            },
+            {
+                id: 13,
+                name: "Nature's Palette",
+                startDate: "09/01/2025",
+                endDate: "09/30/2025",
+                status: "ended",
+                description: `<img src="https://placehold.co/300x300/f97316/ffffff?text=Nature's+Palette">`
+            },
+            {
+                id: 14,
+                name: "Urban Geometry",
+                startDate: "11/01/2025",
+                endDate: "11/30/2025",
+                status: "upcoming",
+                description: `<img src="https://placehold.co/300x250/ef4444/ffffff?text=Urban+Geometry">`
+            }
+        ];
+        // Sample contestant data. In a real app, this would be fetched from an API.
+        const contestants = [
+            { name: "Ruth Madondo", votes: 125, imageUrl: "https://lumiself.co.zw/modeling/wp-content/uploads/sites/3/2025/05/Ruth-Madondo-249x300.jpg" },
+            { name: "Samantha Ngwenya", votes: 98, imageUrl: "https://lumiself.co.zw/modeling/wp-content/uploads/sites/3/2025/07/Samantha-Ngwenya-300x300.jpg" },
+            { name: "Nicole Shirichena", votes: 156, imageUrl: "https://lumiself.co.zw/modeling/wp-content/uploads/sites/3/2025/07/Nicole-Shirichena-257x300.jpg" }
+        ];
+
+        const blogScreen = document.getElementById('blogScreen');
+        const contestBrowseScreen = document.getElementById('contestBrowseScreen');
+        const contestDetailScreen = document.getElementById('contestDetailScreen');
+        const profileScreen = document.getElementById('profileScreen');
+        const uploadScreen = document.getElementById('uploadScreen');
+        const mySubmissionsScreen = document.getElementById('mySubmissionsScreen');
+        const joinContestScreen = document.getElementById('joinContestScreen');
+        const toast = document.getElementById('toast');
+        const registerButton = document.getElementById('registerButton');
+        const loginButton = document.getElementById('loginButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const contestantFeatures = document.getElementById('contestantFeatures');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const contestTitle = document.getElementById('contestTitle');
+        const contestDates = document.getElementById('contestDates');
+        const imageCarousel = document.getElementById('imageCarousel');
+        const blogPostsList = document.getElementById('blogPostsList');
+        const contestList = document.getElementById('contestList');
+        const contestantsList = document.getElementById('contestantsList');
+
+        function showScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'contestDetailScreen') {
+                renderContestDetail(contestData);
+            } else if (screenId === 'blogScreen') {
+                renderBlogPosts();
+            } else if (screenId === 'contestBrowseScreen') {
+                renderContests();
+            }
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        registerButton.onclick = () => {
+            isLoggedIn = true;
+            toggleAuthButtons();
+            showToast('Registered and logged in!');
+        };
+
+        loginButton.onclick = () => {
+            isLoggedIn = true;
+            toggleAuthButtons();
+            showToast('Logged in successfully!');
+        };
+
+        logoutButton.onclick = () => {
+            isLoggedIn = false;
+            toggleAuthButtons();
+            showToast('Logged out.');
+        };
+
+        function toggleAuthButtons() {
+            if (isLoggedIn) {
+                registerButton.classList.add('hidden');
+                loginButton.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+                contestantFeatures.classList.remove('hidden');
+            } else {
+                registerButton.classList.remove('hidden');
+                loginButton.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
+                contestantFeatures.classList.add('hidden');
+            }
+        }
+
+        function startUpload() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                uploadProgress.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    showToast('Photo uploaded to contest!');
+                    setTimeout(() => showScreen('profileScreen'), 500);
+                }
+            }, 200);
+        }
+
+        function parseImagesFromHtml(htmlString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+            const images = doc.querySelectorAll('img');
+            const imageUrls = Array.from(images).map(img => img.src);
+            return imageUrls;
+        }
+
+        function renderContestDetail(data) {
+            const imageUrls = parseImagesFromHtml(data.description);
+            contestTitle.textContent = data.name;
+            contestDates.textContent = `Contest period: ${data.start_date} - ${data.end_date}`;
+            
+            imageCarousel.innerHTML = '';
+            imageUrls.forEach(url => {
+                const carouselItem = document.createElement('div');
+                carouselItem.classList.add('carousel-item', 'w-full', 'flex-shrink-0');
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = data.name;
+                img.classList.add('w-full', 'h-auto', 'rounded-lg');
+                carouselItem.appendChild(img);
+                imageCarousel.appendChild(carouselItem);
+            });
+
+            renderContestants(data.status);
+        }
+
+        function renderContestants(contestStatus) {
+            contestantsList.innerHTML = ''; // Clear previous entries
+
+            const isVotingActive = contestStatus !== 'ended';
+
+            const contestants = [
+                { name: "Ruth Madondo", votes: 125, imageUrl: "https://lumiself.co.zw/modeling/wp-content/uploads/sites/3/2025/05/Ruth-Madondo-249x300.jpg" },
+                { name: "Samantha Ngwenya", votes: 98, imageUrl: "https://lumiself.co.zw/modeling/wp-content/uploads/sites/3/2025/07/Samantha-Ngwenya-300x300.jpg" },
+                { name: "Nicole Shirichena", votes: 156, imageUrl: "https://lumiself.co.zw/modeling/wp-content/uploads/sites/3/2025/07/Nicole-Shirichena-257x300.jpg" }
+            ];
+
+            contestants.forEach(contestant => {
+                const buttonClasses = isVotingActive
+                    ? 'bg-blue-500 hover:bg-blue-600'
+                    : 'bg-gray-400 cursor-not-allowed';
+                const buttonText = isVotingActive ? 'Vote' : 'Voting Closed';
+                const buttonOnClick = isVotingActive ? `voteForContestant('${contestant.name}')` : '';
+
+                const cardHtml = `
+                    <div class="flex items-center space-x-4 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <img src="${contestant.imageUrl}" alt="${contestant.name}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900">${contestant.name}</h4>
+                            <p class="text-sm text-gray-600 mt-1">Votes: <span class="font-bold">${contestant.votes}</span></p>
+                        </div>
+                        <button onclick="${buttonOnClick}" class="px-4 py-2 rounded-full text-white font-semibold text-sm transition-colors ${buttonClasses}">
+                            ${buttonText}
+                        </button>
+                    </div>
+                `;
+                contestantsList.innerHTML += cardHtml;
+            });
+        }
+
+        function voteForContestant(name) {
+            showToast(`Voted for ${name}!`);
+            // In a real app, this would send an API request to record the vote
+        }
+
+
+        function renderBlogPosts() {
+            // Placeholder for fetching WordPress blog posts
+            blogPostsList.innerHTML = `
+                <div class="bg-slate-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 class="text-lg font-bold text-gray-900">Hello world!</h3>
+                    <p class="text-sm text-gray-600 mt-1">Welcome to WordPress. This is your first post. Edit or delete it, then start writing!</p>
+                    <div class="mt-3 flex items-center justify-end">
+                        <a href="https://lumiself.co.zw/modeling/2025/02/21/hello-world/" target="_blank" class="bg-blue-500 text-white px-4 py-1.5 rounded-full font-semibold text-sm shadow-md hover:bg-blue-600 transition-colors">Read More</a>
+                    </div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 class="text-lg font-bold text-gray-900">Announcing the March Photo Contest!</h3>
+                    <p class="text-sm text-gray-600 mt-1">Get ready to submit your best shots for a chance to win amazing prizes!</p>
+                    <div class="mt-3 flex items-center justify-end">
+                        <a href="#" class="bg-blue-500 text-white px-4 py-1.5 rounded-full font-semibold text-sm shadow-md hover:bg-blue-600 transition-colors">Read More</a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderContests() {
+            contestList.innerHTML = '';
+            contestDataList.forEach(contest => {
+                const firstImageUrl = parseImagesFromHtml(contest.description)[0];
+                const cardHtml = `
+                    <div onclick="showScreen('contestDetailScreen')" class="contest-card bg-slate-50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <img src="${firstImageUrl}" alt="${contest.name}" class="w-full object-cover">
+                        <div class="p-4">
+                            <h3 class="text-base font-bold text-gray-900">${contest.name}</h3>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-sm font-semibold ${contest.status === 'ended' ? 'text-red-500' : 'text-green-500'}">${contest.status.charAt(0).toUpperCase() + contest.status.slice(1)}</span>
+                                <button class="bg-blue-500 text-white px-3 py-1.5 rounded-full font-semibold text-xs shadow-md hover:bg-blue-600 transition-colors">View</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contestList.innerHTML += cardHtml;
+            });
+        }
+
+        function scrollCarousel(direction) {
+            const container = document.getElementById('imageCarousel');
+            const scrollAmount = container.clientWidth * direction;
+            container.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show the blog screen first on load
+        showScreen('contestBrowseScreen');
+
+        // Initial state of buttons
+        toggleAuthButtons();
+
+    </script>
+</body>
+</html>
