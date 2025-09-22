@@ -13,9 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh // Keep for error/empty states if needed
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,12 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.picchallenge.data.model.Contest // Your existing Contest model
-import com.example.picchallenge.data.model.ContestStatus // Ensure this enum is created
-import com.example.picchallenge.ui.components.ContestCard // Ensure this composable is created from the guide
+import com.example.picchallenge.data.model.Contest
+import com.example.picchallenge.data.model.ContestStatus
+import com.example.picchallenge.ui.components.ContestCard
 import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.ContestViewModel
-import com.example.picchallenge.utils.HtmlContentParser
 import com.example.picchallenge.utils.NetworkResult
 
 // Helper function to map String status to ContestStatus enum
@@ -41,21 +41,26 @@ fun mapStringToContestStatus(status: String?): ContestStatus {
         "active" -> ContestStatus.ACTIVE
         "ended" -> ContestStatus.ENDED
         "upcoming" -> ContestStatus.UPCOMING
-        else -> ContestStatus.ENDED // Default or handle as an error/unknown state
+        else -> ContestStatus.ENDED
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContestListScreen(
-    onContestClick: (com.example.picchallenge.data.model.Contest) -> Unit, // Existing click takes the old model
+    onContestClick: (Contest) -> Unit,
     onProfileClick: () -> Unit,
     contestViewModel: ContestViewModel = hiltViewModel()
 ) {
     val contestsResult by contestViewModel.contests.collectAsState()
-    // val isLoading by contestViewModel.isLoading.collectAsState() // isLoading seems to be derived from contestsResult
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        contestViewModel.loadContests(status = "all")
+    }
+
+    val refreshContests = {
+        isRefreshing = true
         contestViewModel.loadContests(status = "all")
     }
 
@@ -76,19 +81,9 @@ fun ContestListScreen(
                             color = TextPrimary
                         )
                     },
-                    actions = {
-                        IconButton(onClick = onProfileClick) {
-                            Icon(
-                                Icons.Default.Person, 
-                                contentDescription = "Profile",
-                                tint = PrimaryModern
-                            )
-                        }
-                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = TextPrimary,
-                        actionIconContentColor = PrimaryModern
+                        titleContentColor = TextPrimary
                     )
                 )
             }
@@ -111,13 +106,13 @@ fun ContestListScreen(
                 is NetworkResult.Success -> {
                     val contestData = result.data
                     if (contestData.data.isEmpty()) {
-                        EmptyState(
-                            message = "No contests found"
-                        )
+                        EmptyState(message = "No contests found")
                     } else {
-                        ActualContestGrid(
-                            contests = contestData.data, // Pass the original list
-                            onContestClick = onContestClick // Original click handler
+                        PullToRefreshContestGrid(
+                            contests = contestData.data,
+                            onContestClick = onContestClick,
+                            isRefreshing = isRefreshing,
+                            onRefresh = refreshContests
                         )
                     }
                 }
@@ -133,29 +128,67 @@ fun ContestListScreen(
 }
 
 @Composable
-private fun ActualContestGrid(
-    contests: List<com.example.picchallenge.data.model.Contest>, // Takes the original Contest model
-    onContestClick: (com.example.picchallenge.data.model.Contest) -> Unit,
+private fun PullToRefreshContestGrid(
+    contests: List<Contest>,
+    onContestClick: (Contest) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(contests, key = { it.id }) { contest ->
-            ContestCard(
-                contest = contest,
-                onClick = { onContestClick(contest) }
-            )
+    Box(modifier = modifier.fillMaxSize()) {
+        val listState = rememberLazyGridState()
+        
+        var isAtTop by remember { mutableStateOf(true) }
+        
+        LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+            isAtTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+        
+        LaunchedEffect(listState.isScrollInProgress) {
+            if (!listState.isScrollInProgress && isAtTop) {
+                onRefresh()
+            }
+        }
+        
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (isRefreshing) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    color = SurfaceWhite
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = PrimaryModern,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+            
+            LazyVerticalGrid(
+                state = listState,
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(contests, key = { it.id }) { contest ->
+                    ContestCard(
+                        contest = contest,
+                        onClick = { onContestClick(contest) }
+                    )
+                }
+            }
         }
     }
 }
 
-
-// Empty and Error states can remain as they are or be styled further
 @Composable
 private fun EmptyState(message: String) {
     Box(
@@ -174,7 +207,7 @@ private fun EmptyState(message: String) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.Refresh, // Consider a more relevant icon
+                    imageVector = Icons.Default.Refresh,
                     contentDescription = null,
                     tint = PrimaryBlue,
                     modifier = Modifier.size(64.dp)
@@ -204,7 +237,7 @@ private fun ErrorState(message: String?, onRetry: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.Refresh, // Consider a more relevant error icon
+                    imageVector = Icons.Default.Refresh,
                     contentDescription = null,
                     tint = StatusRed,
                     modifier = Modifier.size(64.dp)
