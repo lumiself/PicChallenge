@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.picchallenge.data.model.Contest // Your existing Contest model
 import com.example.picchallenge.data.model.ContestStatus // Ensure this enum is created
@@ -59,25 +61,37 @@ fun ContestListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Photo Contests",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+            Surface(
+                modifier = Modifier
+                    .shadow(elevation = 4.dp)
+                    .zIndex(1f),
+                color = SurfaceWhite
+            ) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            "Photo Contests",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = onProfileClick) {
+                            Icon(
+                                Icons.Default.Person, 
+                                contentDescription = "Profile",
+                                tint = PrimaryModern
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = TextPrimary,
+                        actionIconContentColor = PrimaryModern
                     )
-                },
-                actions = {
-                    IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Default.Person, contentDescription = "Profile")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue,
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
                 )
-            )
+            }
         }
     ) { paddingValues ->
         Column(
