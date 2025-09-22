@@ -14,7 +14,8 @@ data class Contest(
     @SerializedName("vote_frequency") val voteFrequency: Int,
     @SerializedName("gallery_layout") val galleryLayout: Int,
     @SerializedName("contest_mode") val contestMode: Int,
-    @SerializedName("status") val status: String
+    @SerializedName("status") val status: String,
+    @SerializedName("image_url") val imageUrl: String? = null
 )
 
 data class ContestResponse(

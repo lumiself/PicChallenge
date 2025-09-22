@@ -1,6 +1,7 @@
 package com.example.picchallenge.ui.contest
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,10 +16,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.ui.theme.*
@@ -138,106 +144,134 @@ private fun ContestCard(
     onClick: () -> Unit
 ) {
     val imageUrls = remember { HtmlContentParser.parseImages(contest.description) }
-    val firstImageUrl = imageUrls.firstOrNull()
+    val firstImageUrl = contest.imageUrl ?: imageUrls.firstOrNull()
+    val isEnded = contest.status.lowercase() == "ended"
+    
+    // Create grayscale color filter for ended contests
+    val grayscaleColorFilter = if (isEnded) {
+        ColorFilter.colorMatrix(ColorMatrix().apply {
+            setToSaturation(0f) // 0f = fully grayscale
+        })
+    } else null
     
     Card(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(240.dp),
-        shape = RoundedCornerShape(16.dp),
+            .height(260.dp), // Increased height for more prominent image
+        shape = RoundedCornerShape(20.dp), // More rounded corners
         colors = CardDefaults.cardColors(
             containerColor = CardWhite
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+            defaultElevation = if (isEnded) 2.dp else 6.dp // Reduced elevation for ended contests
         )
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Image Section - Full width on top with actual image loading
+            // Image Section - More prominent with visual effects
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(160.dp) // Increased image height
             ) {
                 if (firstImageUrl != null) {
-                    // Load actual image using EnhancedImage component
-                    com.example.picchallenge.ui.components.EnhancedImage(
-                        imageUrl = firstImageUrl,
+                    // Load actual image using standard Image composable with grayscale filter for ended contests
+                    val context = LocalContext.current
+                    val imageRequest = remember(firstImageUrl) {
+                        ImageRequest.Builder(context)
+                            .data(firstImageUrl)
+                            .crossfade(true)
+                            .build()
+                    }
+                    
+                    Image(
+                        painter = rememberAsyncImagePainter(model = imageRequest),
                         contentDescription = "Contest image for ${contest.name}",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        colorFilter = grayscaleColorFilter // Apply grayscale filter
                     )
                 } else {
-                    // Placeholder when no image
+                    // Enhanced placeholder when no image
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.LightGray),
+                            .background(if (isEnded) Color(0xFFe5e7eb) else Color(0xFFf3f4f6)), // Different background for ended contests
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "No image",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(32.dp)
+                            tint = if (isEnded) Color(0xFF9ca3af) else Color(0xFF6b7280), // Different icon color for ended contests
+                            modifier = Modifier.size(40.dp) // Larger icon
+                        )
+                    }
+                }
+                
+                // Status overlay for better visibility
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = when (contest.status.lowercase()) {
+                            "active" -> StatusGreen.copy(alpha = 0.9f)
+                            "ended" -> StatusRed.copy(alpha = 0.9f)
+                            "upcoming" -> StatusPurple.copy(alpha = 0.9f)
+                            else -> Color.Gray.copy(alpha = 0.9f)
+                        }
+                    ) {
+                        Text(
+                            text = contest.status.replaceFirstChar { it.uppercase() },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
             }
             
-            // Content Section - Below image
+            // Content Section - Enhanced layout
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp)
+                    .padding(16.dp) // Increased padding
             ) {
-                // Contest Name
+                // Contest Name - Enhanced typography
                 Text(
                     text = contest.name,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium, // Larger text
                     fontWeight = FontWeight.Bold,
-                    color = TextGray,
-                    maxLines = 1,
+                    color = if (isEnded) TextGray.copy(alpha = 0.7f) else TextGray, // Faded text for ended contests
+                    maxLines = 2, // Allow 2 lines for longer names
                     overflow = TextOverflow.Ellipsis
                 )
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp)) // More spacing
                 
-                // Status and View Button Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                // View Button - Enhanced styling
+                Button(
+                    onClick = onClick,
+                    modifier = Modifier
+                        .fillMaxWidth() // Full width button
+                        .height(36.dp), // Slightly taller button
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isEnded) PrimaryBlue.copy(alpha = 0.6f) else PrimaryBlue, // Faded button for ended contests
+                        contentColor = Color.White
+                    )
                 ) {
-                    // Status Text (like in prototype)
                     Text(
-                        text = contest.status.replaceFirstChar { it.uppercase() },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = when (contest.status.lowercase()) {
-                            "active" -> StatusGreen
-                            "ended" -> StatusRed
-                            "upcoming" -> StatusPurple
-                            else -> Color.Gray
-                        },
+                        "View Contest",
+                        style = MaterialTheme.typography.labelMedium, // Slightly larger text
                         fontWeight = FontWeight.SemiBold
                     )
-                    
-                    // View Button (prominent like in prototype)
-                    Button(
-                        onClick = onClick,
-                        modifier = Modifier.height(28.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            "View",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
                 }
             }
         }
