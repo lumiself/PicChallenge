@@ -1,5 +1,6 @@
 package com.example.picchallenge.ui.contest
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -138,45 +139,51 @@ private fun PullToRefreshContestGrid(
     Box(modifier = modifier.fillMaxSize()) {
         val listState = rememberLazyGridState()
         
-        var isAtTop by remember { mutableStateOf(true) }
+        // Simple pull-to-refresh using scroll position detection
+        var lastScrollOffset by remember { mutableStateOf(0) }
+        var pullTriggered by remember { mutableStateOf(false) }
         
         LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-            isAtTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-        }
-        
-        LaunchedEffect(listState.isScrollInProgress) {
-            if (!listState.isScrollInProgress && isAtTop) {
+            val currentOffset = listState.firstVisibleItemScrollOffset
+            val isAtTop = listState.firstVisibleItemIndex == 0 && currentOffset == 0
+            
+            // Detect pull gesture (negative scroll offset or transition to top)
+            if (isAtTop && lastScrollOffset > 0 && !pullTriggered && !isRefreshing) {
+                pullTriggered = true
                 onRefresh()
+            } else if (!isAtTop) {
+                pullTriggered = false
             }
+            
+            lastScrollOffset = currentOffset
         }
         
         Column(modifier = Modifier.fillMaxSize()) {
+            // Show refresh indicator at the top when refreshing
             if (isRefreshing) {
-                Surface(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp),
-                    color = SurfaceWhite
+                        .height(60.dp)
+                        .background(SurfaceWhite),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = PrimaryModern,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    CircularProgressIndicator(
+                        color = PrimaryModern,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
             
             LazyVerticalGrid(
                 state = listState,
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentPadding = PaddingValues(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(contests, key = { it.id }) { contest ->
                     ContestCard(
