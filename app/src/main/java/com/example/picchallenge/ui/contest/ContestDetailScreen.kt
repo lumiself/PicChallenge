@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -559,9 +560,9 @@ private fun ContestImageWithOverlay(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Status Badge
+                // Status Badge - Increased size
                 Surface(
-                    shape = RoundedCornerShape(10.dp), // Slightly smaller corners
+                    shape = RoundedCornerShape(12.dp), // Back to original size
                     color = when (contest.status.lowercase()) {
                         "active" -> StatusGreen
                         "ended" -> StatusRed
@@ -571,8 +572,8 @@ private fun ContestImageWithOverlay(
                 ) {
                     Text(
                         text = contest.status.replaceFirstChar { it.uppercase() },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp), // Further reduced padding
-                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), // Increased padding
+                        style = MaterialTheme.typography.labelMedium, // Increased text size
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -679,6 +680,17 @@ private fun ContestantsList(
     onVotePhoto: (Photo) -> Unit,
     contestStatus: String
 ) {
+    var selectedPhoto by remember { mutableStateOf<Photo?>(null) }
+    
+    // Full screen image viewer for contestant photos
+    if (selectedPhoto != null) {
+        FullScreenImageViewer(
+            imageUrl = selectedPhoto!!.url,
+            title = selectedPhoto!!.title ?: "Contestant Photo",
+            onDismiss = { selectedPhoto = null }
+        )
+    }
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -702,7 +714,8 @@ private fun ContestantsList(
                 ContestantItem(
                     photo = photo,
                     onVoteClick = { onVotePhoto(photo) },
-                    contestStatus = contestStatus
+                    contestStatus = contestStatus,
+                    onImageClick = { selectedPhoto = photo }
                 )
                 if (photo != photos.last()) {
                     Divider(
@@ -719,25 +732,36 @@ private fun ContestantsList(
 private fun ContestantItem(
     photo: Photo,
     onVoteClick: () -> Unit,
-    contestStatus: String
+    contestStatus: String,
+    onImageClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Photo thumbnail
+        // Photo thumbnail - now clickable with better click handling
         Card(
             modifier = Modifier
                 .size(80.dp)
                 .padding(end = 12.dp),
             shape = RoundedCornerShape(8.dp)
         ) {
-            com.example.picchallenge.ui.components.EnhancedImage(
-                imageUrl = photo.thumbnail,
-                contentDescription = photo.title ?: "Contestant photo",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { 
+                        println("Image clicked: ${photo.title}") // Debug log
+                        onImageClick() 
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                com.example.picchallenge.ui.components.EnhancedImage(
+                    imageUrl = photo.thumbnail,
+                    contentDescription = photo.title ?: "Contestant photo",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
         
         // Contestant info
@@ -827,4 +851,65 @@ private fun ContestActions(
 ) {
     // Upload photo button removed - now only available via floating action button for logged-in users
     // This function can be removed or kept for future use
+}
+
+@Composable
+private fun FullScreenImageViewer(
+    imageUrl: String,
+    title: String,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.9f))
+            .clickable { onDismiss() }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Full size image
+            com.example.picchallenge.ui.components.EnhancedImage(
+                imageUrl = imageUrl,
+                contentDescription = title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentScale = ContentScale.Fit
+            )
+            
+            // Title
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            
+            // Dismiss hint
+            Text(
+                text = "Tap anywhere to close",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+        
+        // Close button in top right
+        IconButton(
+            onClick = onDismiss,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Close",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
 }
