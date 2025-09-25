@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.background
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -17,14 +18,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
 import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.ContestViewModel
 import com.example.picchallenge.utils.HtmlContentParser
 import com.example.picchallenge.utils.NetworkResult
+
+/**
+ * Simple function to check if user is logged in
+ * In a real app, this would check authentication state from repository
+ */
+private fun isUserLoggedIn(): Boolean {
+    // For now, return false to hide the floating button
+    // This can be updated to check actual authentication state
+    return false
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,31 +112,40 @@ fun ContestDetailScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        contest?.name ?: "Contest Details",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+            Surface(
+                modifier = Modifier
+                    .shadow(elevation = 4.dp)
+                    .zIndex(1f),
+                color = SurfaceWhite
+            ) {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            contest?.name ?: "Contest Details",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = TextPrimary,
+                        navigationIconContentColor = TextPrimary
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
                 )
-            )
+            }
         },
         floatingActionButton = {
-            if (contest?.status?.equals("active", ignoreCase = true) == true) {
+            // Only show floating button for logged-in users with active contests
+            if (contest?.status?.equals("active", ignoreCase = true) == true && isUserLoggedIn()) {
                 FloatingActionButton(
                     onClick = onUploadPhoto,
-                    containerColor = PrimaryBlue,
+                    containerColor = PrimaryModern,
                     contentColor = Color.White
                 ) {
                     Icon(Icons.Default.Upload, contentDescription = "Upload Photo")
@@ -180,19 +204,20 @@ private fun ContestContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Image Carousel at the top - larger size
+        // Combined Image Carousel with Contest Details Overlay
         if (imageUrls.isNotEmpty()) {
-            ImageCarousel(imageUrls = imageUrls)
+            ContestImageWithOverlay(
+                imageUrls = imageUrls,
+                contest = contest,
+                contestText = contestText
+            )
+        } else {
+            // Fallback to header if no images
+            ContestHeader(
+                contest = contest,
+                contestText = contestText
+            )
         }
-        
-        // Contest Header with Status
-        ContestHeader(
-            contest = contest,
-            contestText = contestText
-        )
-        
-        // How to Vote Instructions
-        VotingInstructions(contest = contest)
         
         // Contestants List
         if (contestPhotos.isNotEmpty()) {
@@ -481,6 +506,102 @@ private fun ErrorState(
     }
 }
 
+// New function to combine carousel with contest details overlay
+@Composable
+private fun ContestImageWithOverlay(
+    imageUrls: List<String>,
+    contest: Contest,
+    contestText: String
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Image Carousel at the top - larger size
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(320.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                imageUrls.forEach { imageUrl ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(350.dp)
+                    ) {
+                        com.example.picchallenge.ui.components.EnhancedImage(
+                            imageUrl = imageUrl,
+                            contentDescription = "Contest image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Contest Details Overlay (similar to ContestCard) - Further reduced coverage
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.3f)) // Further reduced transparency
+                .padding(10.dp) // Further reduced padding
+        ) {
+            // Status and dates in same row - more compact layout
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Status Badge
+                Surface(
+                    shape = RoundedCornerShape(10.dp), // Slightly smaller corners
+                    color = when (contest.status.lowercase()) {
+                        "active" -> StatusGreen
+                        "ended" -> StatusRed
+                        "upcoming" -> StatusPurple
+                        else -> Color.Gray
+                    }
+                ) {
+                    Text(
+                        text = contest.status.replaceFirstChar { it.uppercase() },
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp), // Further reduced padding
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                // Date Information - Made more compact
+                Text(
+                    text = "${contest.startDate.take(10)} - ${contest.endDate.take(10)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp)) // Minimal spacing
+            
+            // Removed contest name since it's already in the top bar
+            
+            Text(
+                text = contestText,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.9f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
 // New functions for the prototype design
 
 @Composable
@@ -630,11 +751,6 @@ private fun ContestantItem(
                 color = TextGray
             )
             Text(
-                text = "By ${photo.author}",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextGray.copy(alpha = 0.7f)
-            )
-            Text(
                 text = "${photo.votes} votes • ${photo.views} views",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextGray.copy(alpha = 0.6f)
@@ -700,12 +816,6 @@ private fun EmptyContestantsMessage() {
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextGray
             )
-            
-            Text(
-                text = "Be the first to submit your photo!",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextGray.copy(alpha = 0.7f)
-            )
         }
     }
 }
@@ -715,18 +825,6 @@ private fun ContestActions(
     contest: Contest,
     onViewSubmissions: () -> Unit
 ) {
-    if (contest.status.equals("active", ignoreCase = true)) {
-        Button(
-            onClick = { /* Handle upload */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = PrimaryBlue
-            )
-        ) {
-            Text("Upload Photo")
-        }
-    }
+    // Upload photo button removed - now only available via floating action button for logged-in users
+    // This function can be removed or kept for future use
 }
