@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -182,6 +183,7 @@ fun ContestDetailScreen(
                     onVotePhoto = { photo ->
                         // Handle vote action
                     },
+                    contestViewModel = contestViewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -195,6 +197,7 @@ private fun ContestContent(
     contestPhotos: List<Photo>,
     onViewSubmissions: () -> Unit,
     onVotePhoto: (Photo) -> Unit,
+    contestViewModel: ContestViewModel,
     modifier: Modifier = Modifier
 ) {
     val imageUrls = remember { HtmlContentParser.parseImages(contest.description) }
@@ -225,7 +228,9 @@ private fun ContestContent(
             ContestantsList(
                 photos = contestPhotos,
                 onVotePhoto = onVotePhoto,
-                contestStatus = contest.status
+                contestStatus = contest.status,
+                contestId = contest.id,
+                contestViewModel = contestViewModel
             )
         } else {
             EmptyContestantsMessage()
@@ -678,16 +683,30 @@ private fun VotingInstructions(contest: Contest) {
 private fun ContestantsList(
     photos: List<Photo>,
     onVotePhoto: (Photo) -> Unit,
-    contestStatus: String
+    contestStatus: String,
+    contestId: Int,
+    contestViewModel: ContestViewModel
 ) {
     var selectedPhoto by remember { mutableStateOf<Photo?>(null) }
     
+    // Get download state for this contest
+    val downloadState by contestViewModel.getImageDownloadState(contestId)?.collectAsState() ?: remember { mutableStateOf(null) }
+    
+    // Start downloading images when photos are available
+    LaunchedEffect(photos) {
+        if (photos.isNotEmpty() && downloadState == null) {
+            contestViewModel.startImageDownload(contestId, photos)
+        }
+    }
+    
     // Full screen image viewer for contestant photos
     if (selectedPhoto != null) {
+        val cachedImageUrl = contestViewModel.getCachedImageUrl(selectedPhoto!!.large)
         FullScreenImageViewer(
-            imageUrl = selectedPhoto!!.url,
+            imageUrl = cachedImageUrl,
             title = selectedPhoto!!.title ?: "Contestant Photo",
-            onDismiss = { selectedPhoto = null }
+            onDismiss = { selectedPhoto = null },
+            downloadState = downloadState
         )
     }
     
@@ -701,12 +720,45 @@ private fun ContestantsList(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = "Contestants (${photos.size})",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = TextGray
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Contestants (${photos.size})",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextGray
+                )
+                
+                // Download progress indicator
+                downloadState?.let { state ->
+                    if (state.isDownloading) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Text(
+                                text = state.progressText,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextGray.copy(alpha = 0.7f)
+                            )
+                        }
+                    } else if (state.isComplete) {
+                        Icon(
+                            imageVector = Icons.Default.Upload,
+                            contentDescription = "Downloaded",
+                            tint = StatusGreen,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.height(12.dp))
             
@@ -744,13 +796,20 @@ private fun ContestantItem(
             modifier = Modifier
                 .size(80.dp)
                 .padding(end = 12.dp),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 2.dp,
+                pressedElevation = 8.dp
+            )
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable { 
-                        println("Image clicked: ${photo.title}") // Debug log
+                    .clickable(
+                        indication = androidx.compose.foundation.LocalIndication.current,
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    ) { 
+                        println("Image clicked: ${photo.title} - Large URL: ${photo.large}") // Enhanced debug log
                         onImageClick() 
                     },
                 contentAlignment = Alignment.Center
@@ -857,12 +916,16 @@ private fun ContestActions(
 private fun FullScreenImageViewer(
     imageUrl: String,
     title: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    downloadState: com.example.picchallenge.data.model.ImageDownloadState? = null
 ) {
+    var isLoading by remember { mutableStateOf(true) }
+    var hasError by remember { mutableStateOf(false) }
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.9f))
+            .background(Color.Black.copy(alpha = 0.95f))
             .clickable { onDismiss() }
     ) {
         Column(
@@ -870,34 +933,106 @@ private fun FullScreenImageViewer(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Full size image
-            com.example.picchallenge.ui.components.EnhancedImage(
-                imageUrl = imageUrl,
-                contentDescription = title,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f)
                     .padding(16.dp),
-                contentScale = ContentScale.Fit
-            )
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    downloadState?.isDownloading == true -> {
+                        // Show download progress
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = downloadState.progressText,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = downloadState.downloadProgress,
+                                modifier = Modifier.fillMaxWidth(0.8f),
+                                color = PrimaryModern
+                            )
+                        }
+                    }
+                    hasError -> {
+                        // Error state
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Upload,
+                                contentDescription = "Error",
+                                tint = Color.Red,
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Failed to load image",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(onClick = { hasError = false }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                    isLoading -> {
+                        // Loading state
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                    else -> {
+                        // Success state - show the image
+                        com.example.picchallenge.ui.components.NetworkImage(
+                            imageUrl = imageUrl,
+                            contentDescription = title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                            onSuccess = { isLoading = false },
+                            onError = { 
+                                isLoading = false
+                                hasError = true 
+                            }
+                        )
+                    }
+                }
+            }
             
-            // Title
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            
-            // Dismiss hint
-            Text(
-                text = "Tap anywhere to close",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            // Title and dismiss hint (non-clickable area)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "Tap anywhere to close",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            }
         }
         
-        // Close button in top right
+        // Close button in top right (separate from dismiss area)
         IconButton(
             onClick = onDismiss,
             modifier = Modifier

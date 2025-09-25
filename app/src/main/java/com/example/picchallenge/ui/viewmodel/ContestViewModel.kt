@@ -8,8 +8,11 @@ import com.example.picchallenge.data.model.CreateContestRequest
 import com.example.picchallenge.data.model.CreateContestResponse
 import com.example.picchallenge.data.model.SuccessResponse
 import com.example.picchallenge.data.model.PhotoResponse
+import com.example.picchallenge.data.model.Photo
+import com.example.picchallenge.data.model.ImageDownloadState
 import com.example.picchallenge.data.repository.ContestRepository
 import com.example.picchallenge.utils.NetworkResult
+import com.example.picchallenge.utils.ImageDownloadManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ContestViewModel @Inject constructor(
-    private val contestRepository: ContestRepository
+    private val contestRepository: ContestRepository,
+    private val imageDownloadManager: ImageDownloadManager
 ) : ViewModel() {
 
     private val _contests = MutableStateFlow<NetworkResult<ContestResponse>>(NetworkResult.Loading)
@@ -38,6 +42,33 @@ class ContestViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // Image download states for different contests
+    private val _imageDownloadStates = mutableMapOf<Int, StateFlow<ImageDownloadState>>()
+
+    /**
+     * Get the image download state for a specific contest
+     */
+    fun getImageDownloadState(contestId: Int): StateFlow<ImageDownloadState>? {
+        return _imageDownloadStates[contestId]
+    }
+
+    /**
+     * Start downloading images for a contest when photos are loaded
+     */
+    fun startImageDownload(contestId: Int, photos: List<Photo>) {
+        if (_imageDownloadStates[contestId] == null) {
+            val downloadState = imageDownloadManager.startDownloadingContestImages(contestId, photos)
+            _imageDownloadStates[contestId] = downloadState
+        }
+    }
+
+    /**
+     * Get cached image path if available, otherwise return original URL
+     */
+    fun getCachedImageUrl(originalUrl: String): String {
+        return imageDownloadManager.getCachedImagePath(originalUrl) ?: originalUrl
+    }
 
     fun loadContests(
         page: Int = 1,

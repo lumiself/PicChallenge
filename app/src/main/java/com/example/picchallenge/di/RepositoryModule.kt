@@ -69,4 +69,10 @@ object RepositoryModule {
     ): BlogRepository {
         return BlogRepository(wordPressApiService)
     }
+
+    @Provides
+    @Singleton
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
+    }
 }
