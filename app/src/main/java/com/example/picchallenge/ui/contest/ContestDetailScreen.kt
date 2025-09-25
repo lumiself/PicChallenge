@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -32,6 +33,7 @@ import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.ContestViewModel
 import com.example.picchallenge.utils.HtmlContentParser
 import com.example.picchallenge.utils.NetworkResult
+import kotlinx.coroutines.delay
 
 /**
  * Simple function to check if user is logged in
@@ -520,7 +522,7 @@ private fun ContestImageWithOverlay(
     contestText: String
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Image Carousel at the top - larger size
+        // Auto-scrolling Image Carousel at the top - larger size
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -528,27 +530,10 @@ private fun ContestImageWithOverlay(
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                imageUrls.forEach { imageUrl ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(350.dp)
-                    ) {
-                        com.example.picchallenge.ui.components.EnhancedImage(
-                            imageUrl = imageUrl,
-                            contentDescription = "Contest image",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
+            AutoScrollingImageCarousel(
+                imageUrls = imageUrls,
+                modifier = Modifier.fillMaxSize()
+            )
         }
         
         // Contest Details Overlay (similar to ContestCard) - Further reduced coverage
@@ -609,6 +594,68 @@ private fun ContestImageWithOverlay(
 }
 
 // New functions for the prototype design
+
+@Composable
+private fun AutoScrollingImageCarousel(
+    imageUrls: List<String>,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+    
+    // Simple auto-scroll effect
+    LaunchedEffect(key1 = imageUrls.size) {
+        if (imageUrls.size > 1) {
+            while (true) {
+                delay(3000) // Wait 3 seconds
+                val maxScroll = scrollState.maxValue
+                val currentScroll = scrollState.value
+                
+                if (currentScroll >= maxScroll) {
+                    // Reset to beginning when reaching the end
+                    scrollState.animateScrollTo(0)
+                } else {
+                    // Scroll to next position
+                    val nextScroll = (currentScroll + 350).coerceAtMost(maxScroll)
+                    scrollState.animateScrollTo(nextScroll)
+                }
+            }
+        }
+    }
+    
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(280.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .horizontalScroll(scrollState),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Display images twice for infinite scroll effect
+            val displayUrls = imageUrls + imageUrls
+            
+            displayUrls.forEach { imageUrl ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(300.dp)
+                ) {
+                    com.example.picchallenge.ui.components.EnhancedImage(
+                        imageUrl = imageUrl,
+                        contentDescription = "Contest image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+}
 
 @Composable
 private fun ImageCarousel(imageUrls: List<String>) {
@@ -689,6 +736,9 @@ private fun ContestantsList(
 ) {
     var selectedPhoto by remember { mutableStateOf<Photo?>(null) }
     
+    // Track which photos have expanded bios
+    var expandedPhotoIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    
     // Get download state for this contest
     val downloadState by contestViewModel.getImageDownloadState(contestId)?.collectAsState() ?: remember { mutableStateOf(null) }
     
@@ -699,14 +749,11 @@ private fun ContestantsList(
         }
     }
     
-    // Full screen image viewer for contestant photos
+    // Full screen bio viewer for contestant details
     if (selectedPhoto != null) {
-        val cachedImageUrl = contestViewModel.getCachedImageUrl(selectedPhoto!!.large)
-        FullScreenImageViewer(
-            imageUrl = cachedImageUrl,
-            title = selectedPhoto!!.title ?: "Contestant Photo",
-            onDismiss = { selectedPhoto = null },
-            downloadState = downloadState
+        FullScreenBioViewer(
+            photo = selectedPhoto!!,
+            onDismiss = { selectedPhoto = null }
         )
     }
     
@@ -763,14 +810,24 @@ private fun ContestantsList(
             Spacer(modifier = Modifier.height(12.dp))
             
             photos.forEach { photo ->
+                val isBioExpanded = expandedPhotoIds.contains(photo.id)
+                
                 ContestantItem(
                     photo = photo,
                     onVoteClick = { onVotePhoto(photo) },
                     contestStatus = contestStatus,
-                    onImageClick = { selectedPhoto = photo }
+                    onImageClick = { selectedPhoto = photo },
+                    isBioExpanded = isBioExpanded,
+                    onBioToggle = { 
+                        expandedPhotoIds = if (isBioExpanded) {
+                            expandedPhotoIds - photo.id
+                        } else {
+                            expandedPhotoIds + photo.id
+                        }
+                    }
                 )
                 if (photo != photos.last()) {
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
                         color = TextGray.copy(alpha = 0.2f)
                     )
@@ -785,86 +842,132 @@ private fun ContestantItem(
     photo: Photo,
     onVoteClick: () -> Unit,
     contestStatus: String,
-    onImageClick: () -> Unit
+    onImageClick: () -> Unit,
+    isBioExpanded: Boolean,
+    onBioToggle: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Photo thumbnail - now clickable with better click handling
-        Card(
-            modifier = Modifier
-                .size(80.dp)
-                .padding(end = 12.dp),
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 2.dp,
-                pressedElevation = 8.dp
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
+            // Photo thumbnail - restored with click handling for bio
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        indication = androidx.compose.foundation.LocalIndication.current,
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    ) { 
-                        println("Image clicked: ${photo.title} - Large URL: ${photo.large}") // Enhanced debug log
-                        onImageClick() 
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                com.example.picchallenge.ui.components.EnhancedImage(
-                    imageUrl = photo.thumbnail,
-                    contentDescription = photo.title ?: "Contestant photo",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    .size(80.dp)
+                    .padding(end = 12.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp,
+                    pressedElevation = 8.dp
                 )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            indication = androidx.compose.foundation.LocalIndication.current,
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        ) { 
+                            println("Image clicked: ${photo.title} - Large URL: ${photo.large}") // Enhanced debug log
+                            onImageClick() 
+                            onBioToggle() // Toggle bio expansion
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    com.example.picchallenge.ui.components.EnhancedImage(
+                        imageUrl = photo.thumbnail,
+                        contentDescription = photo.title ?: "Contestant photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
-        }
-        
-        // Contestant info
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = photo.title ?: "Untitled",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = TextGray
-            )
-            Text(
-                text = "${photo.votes} votes • ${photo.views} views",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextGray.copy(alpha = 0.6f)
-            )
-        }
-        
-        // Vote button
-        if (contestStatus.equals("active", ignoreCase = true)) {
-            Button(
-                onClick = onVoteClick,
-                modifier = Modifier.height(36.dp),
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            
+            // Contestant info
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    "Vote",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        } else {
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = TextGray.copy(alpha = 0.2f)
-            ) {
-                Text(
-                    "Ended",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelMedium,
+                    text = photo.title ?: "Untitled Entry",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = TextGray
                 )
+                Text(
+                    text = "${photo.votes} votes • ${photo.views} views",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextGray.copy(alpha = 0.6f)
+                )
+                // Add description/bio preview if available
+                if (!photo.description.isNullOrEmpty()) {
+                    Text(
+                        text = photo.description.take(50) + if (photo.description.length > 50) "..." else "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextGray.copy(alpha = 0.8f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            
+            // Vote button
+            if (contestStatus.equals("active", ignoreCase = true)) {
+                Button(
+                    onClick = onVoteClick,
+                    modifier = Modifier.height(36.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        "Vote",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = TextGray.copy(alpha = 0.2f)
+                ) {
+                    Text(
+                        "Ended",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = TextGray
+                    )
+                }
+            }
+        }
+        
+        // Expanded bio section - appears below when clicked
+        if (isBioExpanded && !photo.description.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = CardWhite),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Contestant Bio",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryModern
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = photo.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextGray.copy(alpha = 0.9f)
+                    )
+                }
             }
         }
     }
@@ -913,15 +1016,10 @@ private fun ContestActions(
 }
 
 @Composable
-private fun FullScreenImageViewer(
-    imageUrl: String,
-    title: String,
-    onDismiss: () -> Unit,
-    downloadState: com.example.picchallenge.data.model.ImageDownloadState? = null
+private fun FullScreenBioViewer(
+    photo: Photo,
+    onDismiss: () -> Unit
 ) {
-    var isLoading by remember { mutableStateOf(true) }
-    var hasError by remember { mutableStateOf(false) }
-    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -929,110 +1027,113 @@ private fun FullScreenImageViewer(
             .clickable { onDismiss() }
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
+            // Bio content card
+            Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth(0.9f)
+                    .fillMaxHeight(0.8f),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = CardWhite)
             ) {
-                when {
-                    downloadState?.isDownloading == true -> {
-                        // Show download progress
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = downloadState.progressText,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            LinearProgressIndicator(
-                                progress = downloadState.downloadProgress,
-                                modifier = Modifier.fillMaxWidth(0.8f),
-                                color = PrimaryModern
-                            )
-                        }
-                    }
-                    hasError -> {
-                        // Error state
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Upload,
-                                contentDescription = "Error",
-                                tint = Color.Red,
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Failed to load image",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(onClick = { hasError = false }) {
-                                Text("Retry")
-                            }
-                        }
-                    }
-                    isLoading -> {
-                        // Loading state
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(48.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Title
+                    Text(
+                        text = photo.title ?: "Contestant Entry",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextGray,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Bio/Description section
+                    if (!photo.description.isNullOrEmpty()) {
+                        Text(
+                            text = "Contestant Bio",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PrimaryModern
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = photo.description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextGray.copy(alpha = 0.9f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.verticalScroll(rememberScrollState())
+                        )
+                    } else {
+                        Text(
+                            text = "No bio available for this contestant",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextGray.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
                         )
                     }
-                    else -> {
-                        // Success state - show the image
-                        com.example.picchallenge.ui.components.NetworkImage(
-                            imageUrl = imageUrl,
-                            contentDescription = title,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit,
-                            onSuccess = { isLoading = false },
-                            onError = { 
-                                isLoading = false
-                                hasError = true 
-                            }
-                        )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Stats
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "${photo.votes}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryBlue
+                            )
+                            Text(
+                                text = "Votes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextGray.copy(alpha = 0.7f)
+                            )
+                        }
+                        
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "${photo.views}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryBlue
+                            )
+                            Text(
+                                text = "Views",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextGray.copy(alpha = 0.7f)
+                            )
+                        }
                     }
                 }
             }
             
-            // Title and dismiss hint (non-clickable area)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(bottom = 32.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Tap anywhere to close",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Dismiss hint
+            Text(
+                text = "Tap anywhere to close",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.7f)
+            )
         }
         
-        // Close button in top right (separate from dismiss area)
+        // Close button in top right
         IconButton(
             onClick = onDismiss,
             modifier = Modifier
