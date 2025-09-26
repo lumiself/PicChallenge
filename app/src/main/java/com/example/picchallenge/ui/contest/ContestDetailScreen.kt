@@ -205,6 +205,9 @@ private fun ContestContent(
     val imageUrls = remember { HtmlContentParser.parseImages(contest.description) }
     val contestText = remember { HtmlContentParser.parseText(contest.description) }
     
+    // Track which photos have expanded bios - hoisted to this level for stability
+    var expandedPhotoIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -232,7 +235,9 @@ private fun ContestContent(
                 onVotePhoto = onVotePhoto,
                 contestStatus = contest.status,
                 contestId = contest.id,
-                contestViewModel = contestViewModel
+                contestViewModel = contestViewModel,
+                expandedPhotoIds = expandedPhotoIds,
+                onExpandedPhotoIdsChange = { expandedPhotoIds = it }
             )
         } else {
             EmptyContestantsMessage()
@@ -732,12 +737,11 @@ private fun ContestantsList(
     onVotePhoto: (Photo) -> Unit,
     contestStatus: String,
     contestId: Int,
-    contestViewModel: ContestViewModel
+    contestViewModel: ContestViewModel,
+    expandedPhotoIds: Set<Int>,
+    onExpandedPhotoIdsChange: (Set<Int>) -> Unit
 ) {
     var selectedPhoto by remember { mutableStateOf<Photo?>(null) }
-    
-    // Track which photos have expanded bios
-    var expandedPhotoIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
     
     // Get download state for this contest
     val downloadState by contestViewModel.getImageDownloadState(contestId)?.collectAsState() ?: remember { mutableStateOf(null) }
@@ -819,11 +823,13 @@ private fun ContestantsList(
                     onImageClick = { selectedPhoto = photo },
                     isBioExpanded = isBioExpanded,
                     onBioToggle = { 
-                        expandedPhotoIds = if (isBioExpanded) {
-                            expandedPhotoIds - photo.id
-                        } else {
-                            expandedPhotoIds + photo.id
-                        }
+                        onExpandedPhotoIdsChange(
+                            if (isBioExpanded) {
+                                expandedPhotoIds - photo.id
+                            } else {
+                                expandedPhotoIds + photo.id
+                            }
+                        )
                     }
                 )
                 if (photo != photos.last()) {
