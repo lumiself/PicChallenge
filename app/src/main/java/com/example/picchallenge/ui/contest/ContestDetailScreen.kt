@@ -741,26 +741,6 @@ private fun ContestantsList(
     expandedPhotoIds: Set<Int>,
     onExpandedPhotoIdsChange: (Set<Int>) -> Unit
 ) {
-    var selectedPhoto by remember { mutableStateOf<Photo?>(null) }
-    
-    // Get download state for this contest
-    val downloadState by contestViewModel.getImageDownloadState(contestId)?.collectAsState() ?: remember { mutableStateOf(null) }
-    
-    // Start downloading images when photos are available
-    LaunchedEffect(photos) {
-        if (photos.isNotEmpty() && downloadState == null) {
-            contestViewModel.startImageDownload(contestId, photos)
-        }
-    }
-    
-    // Full screen bio viewer for contestant details
-    if (selectedPhoto != null) {
-        FullScreenBioViewer(
-            photo = selectedPhoto!!,
-            onDismiss = { selectedPhoto = null }
-        )
-    }
-    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -782,33 +762,6 @@ private fun ContestantsList(
                     fontWeight = FontWeight.Bold,
                     color = TextGray
                 )
-                
-                // Download progress indicator
-                downloadState?.let { state ->
-                    if (state.isDownloading) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Text(
-                                text = state.progressText,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextGray.copy(alpha = 0.7f)
-                            )
-                        }
-                    } else if (state.isComplete) {
-                        Icon(
-                            imageVector = Icons.Default.Upload,
-                            contentDescription = "Downloaded",
-                            tint = StatusGreen,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
             }
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -820,7 +773,6 @@ private fun ContestantsList(
                     photo = photo,
                     onVoteClick = { onVotePhoto(photo) },
                     contestStatus = contestStatus,
-                    onImageClick = { selectedPhoto = photo },
                     isBioExpanded = isBioExpanded,
                     onBioToggle = { 
                         onExpandedPhotoIdsChange(
@@ -848,16 +800,18 @@ private fun ContestantItem(
     photo: Photo,
     onVoteClick: () -> Unit,
     contestStatus: String,
-    onImageClick: () -> Unit,
     isBioExpanded: Boolean,
     onBioToggle: () -> Unit
 ) {
+    // State for individual contestant overlay
+    var showOverlay by remember { mutableStateOf(false) }
+    
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Photo thumbnail - restored with click handling for bio
+            // Photo thumbnail - with individual overlay click handling
             Card(
                 modifier = Modifier
                     .size(80.dp)
@@ -876,7 +830,7 @@ private fun ContestantItem(
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                         ) { 
                             println("Image clicked: ${photo.title} - Large URL: ${photo.large}") // Enhanced debug log
-                            onImageClick() 
+                            showOverlay = true // Show individual overlay
                             onBioToggle() // Toggle bio expansion
                         },
                     contentAlignment = Alignment.Center
@@ -976,6 +930,14 @@ private fun ContestantItem(
                 }
             }
         }
+    }
+    
+    // Individual FullScreenBioViewer for this contestant
+    if (showOverlay) {
+        FullScreenBioViewer(
+            photo = photo,
+            onDismiss = { showOverlay = false }
+        )
     }
 }
 
