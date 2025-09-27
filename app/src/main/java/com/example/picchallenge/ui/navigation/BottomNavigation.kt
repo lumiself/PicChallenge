@@ -63,22 +63,41 @@ fun BottomNavigationBar(
             val currentRoute = navBackStackEntry?.destination?.route
             
             items.forEach { item ->
+                // Enhanced route matching - handle contest detail screens
+                val isSelected = when (item.route) {
+                    "contests" -> currentRoute == "contests" || currentRoute?.startsWith("contest/") == true
+                    else -> currentRoute == item.route
+                }
+                
                 NavigationBarItem(
                     icon = { 
                         Icon(
                             item.icon, 
                             contentDescription = item.title,
-                            tint = if (currentRoute == item.route) PrimaryModern else TextSecondary
+                            tint = if (isSelected) PrimaryModern else TextSecondary
                         ) 
                     },
                     label = { 
                         Text(
                             item.title,
-                            color = if (currentRoute == item.route) PrimaryModern else TextSecondary
+                            color = if (isSelected) PrimaryModern else TextSecondary
                         ) 
                     },
-                    selected = currentRoute == item.route,
-                    onClick = { onItemSelected(item) },
+                    selected = isSelected,
+                    onClick = { 
+                        // Handle navigation logic for contest screens
+                        when (item.route) {
+                            "contests" -> {
+                                // If we're already on a contest detail screen, pop back to contests list
+                                if (currentRoute?.startsWith("contest/") == true) {
+                                    navController.popBackStack("contests", inclusive = false)
+                                } else {
+                                    onItemSelected(item)
+                                }
+                            }
+                            else -> onItemSelected(item)
+                        }
+                    },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = PrimaryModern,
                         selectedTextColor = PrimaryModern,

@@ -5,14 +5,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,8 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.draw.clip
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.platform.LocalContext
 import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.ui.theme.*
@@ -541,64 +540,68 @@ private fun ContestImageWithOverlay(
             )
         }
         
-        // Contest Details Overlay (similar to ContestCard) - Further reduced coverage
-        Column(
+        // Contest Details Overlay (similar to ContestCard) - with rounded corners using Surface
+        Surface(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.3f)) // Further reduced transparency
-                .padding(10.dp) // Further reduced padding
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Black.copy(alpha = 0.3f)
         ) {
-            // Status and dates in same row - more compact layout
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
             ) {
-                // Status Badge - Increased size
-                Surface(
-                    shape = RoundedCornerShape(12.dp), // Back to original size
-                    color = when (contest.status.lowercase()) {
-                        "active" -> StatusGreen
-                        "ended" -> StatusRed
-                        "upcoming" -> StatusPurple
-                        else -> Color.Gray
-                    }
+                // Status and dates in same row - more compact layout
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Status Badge
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = when (contest.status.lowercase()) {
+                            "active" -> StatusGreen
+                            "ended" -> StatusRed
+                            "upcoming" -> StatusPurple
+                            else -> Color.Gray
+                        }
+                    ) {
+                        Text(
+                            text = contest.status.replaceFirstChar { it.uppercase() },
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    
+                    // Date Information
                     Text(
-                        text = contest.status.replaceFirstChar { it.uppercase() },
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), // Increased padding
-                        style = MaterialTheme.typography.labelMedium, // Increased text size
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        text = "${contest.startDate.take(10)} - ${contest.endDate.take(10)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.8f)
                     )
                 }
                 
-                // Date Information - Made more compact
+                Spacer(modifier = Modifier.height(4.dp))
+                
                 Text(
-                    text = "${contest.startDate.take(10)} - ${contest.endDate.take(10)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.8f)
+                    text = contestText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.9f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            
-            Spacer(modifier = Modifier.height(4.dp)) // Minimal spacing
-            
-            // Removed contest name since it's already in the top bar
-            
-            Text(
-                text = contestText,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.9f),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
     Spacer(modifier = Modifier.height(16.dp))
 }
-
-// New functions for the prototype design
 
 @Composable
 private fun AutoScrollingImageCarousel(
@@ -627,106 +630,28 @@ private fun AutoScrollingImageCarousel(
         }
     }
     
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(280.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .horizontalScroll(scrollState),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Display images twice for infinite scroll effect
-            val displayUrls = imageUrls + imageUrls
-            
-            displayUrls.forEach { imageUrl ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(300.dp)
-                ) {
-                    com.example.picchallenge.ui.components.EnhancedImage(
-                        imageUrl = imageUrl,
-                        contentDescription = "Contest image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        }
-    }
-    Spacer(modifier = Modifier.height(16.dp))
-}
-
-@Composable
-private fun ImageCarousel(imageUrls: List<String>) {
-    // Simple horizontal scrollable row for now
-    // TODO: Implement proper carousel with indicators
-    Card(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .fillMaxSize()
+            .horizontalScroll(scrollState),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            imageUrls.forEach { imageUrl ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(300.dp)
-                ) {
-                    com.example.picchallenge.ui.components.EnhancedImage(
-                        imageUrl = imageUrl,
-                        contentDescription = "Contest image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+        // Display images twice for infinite scroll effect
+        val displayUrls = imageUrls + imageUrls
+        
+        displayUrls.forEach { imageUrl ->
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(300.dp)
+            ) {
+                com.example.picchallenge.ui.components.EnhancedImage(
+                    imageUrl = imageUrl,
+                    contentDescription = "Contest image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
-        }
-    }
-    Spacer(modifier = Modifier.height(16.dp))
-}
-
-@Composable
-private fun VotingInstructions(contest: Contest) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "How to Vote",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = PrimaryBlue
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = "• Click on any photo to view it in full size\n" +
-                       "• Use the Vote button below each photo\n" +
-                       "• You can vote ${contest.voteFrequency} time(s) per day\n" +
-                       "• Vote for your favorite photos to help them win!",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextGray.copy(alpha = 0.8f)
-            )
         }
     }
 }
@@ -829,9 +754,9 @@ private fun ContestantItem(
                             indication = androidx.compose.foundation.LocalIndication.current,
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                         ) { 
-                            println("Image clicked: ${photo.title} - Large URL: ${photo.large}") // Enhanced debug log
-                            showOverlay = true // Show individual overlay
-                            onBioToggle() // Toggle bio expansion
+                            println("Image clicked: ${photo.title} - Large URL: ${photo.large}")
+                            showOverlay = true
+                            onBioToggle()
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -988,12 +913,23 @@ private fun FullScreenBioViewer(
     photo: Photo,
     onDismiss: () -> Unit
 ) {
+    // Main container with background click handler - very light overlay at 30% opacity
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.95f))
-            .clickable { onDismiss() }
+            .background(Color.Black.copy(alpha = 0.3f))
     ) {
+        // Background click area (outside the card)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { onDismiss() }
+        )
+        
+        // Content area - centered card with bio information
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1001,7 +937,7 @@ private fun FullScreenBioViewer(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Bio content card
+            // Card container - not clickable to allow background clicks to work
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -1091,28 +1027,25 @@ private fun FullScreenBioViewer(
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Dismiss hint
-            Text(
-                text = "Tap anywhere to close",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f)
-            )
+            // Spacer removed - no more dismiss hint text
         }
         
-        // Close button in top right
+        // Close button in top right - positioned above everything with red color
         IconButton(
             onClick = onDismiss,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .padding(16.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.Red.copy(alpha = 0.8f),
+                contentColor = Color.White
+            )
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.Default.Clear,
                 contentDescription = "Close",
                 tint = Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
     }
