@@ -63,9 +63,10 @@ fun BottomNavigationBar(
             val currentRoute = navBackStackEntry?.destination?.route
             
             items.forEach { item ->
-                // Enhanced route matching - handle contest detail screens
+                // Enhanced route matching - handle detail screens
                 val isSelected = when (item.route) {
                     "contests" -> currentRoute == "contests" || currentRoute?.startsWith("contest/") == true
+                    "blog" -> currentRoute == "blog" || currentRoute?.startsWith("blog/") == true
                     else -> currentRoute == item.route
                 }
                 
@@ -85,12 +86,20 @@ fun BottomNavigationBar(
                     },
                     selected = isSelected,
                     onClick = { 
-                        // Handle navigation logic for contest screens
+                        // Handle navigation logic for detail screens
                         when (item.route) {
                             "contests" -> {
                                 // If we're already on a contest detail screen, pop back to contests list
                                 if (currentRoute?.startsWith("contest/") == true) {
                                     navController.popBackStack("contests", inclusive = false)
+                                } else {
+                                    onItemSelected(item)
+                                }
+                            }
+                            "blog" -> {
+                                // If we're already on a blog detail screen, pop back to blog list
+                                if (currentRoute?.startsWith("blog/") == true) {
+                                    navController.popBackStack("blog", inclusive = false)
                                 } else {
                                     onItemSelected(item)
                                 }

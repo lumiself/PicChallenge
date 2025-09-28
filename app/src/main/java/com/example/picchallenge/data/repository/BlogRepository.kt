@@ -125,13 +125,25 @@ class BlogRepository @Inject constructor(
     }
     
     private fun processContentForDisplay(html: String): String {
-        // Use the new processor that preserves image structure
-        return ContentImageProcessor.stripHtmlPreserveImages(html)
+        // Return the original HTML content so that EnhancedArticleContent can process images properly
+        // The inline image processing will handle the images, we just need to clean up the HTML
+        return html
+            .replace("&#8216;", "'") // Left single quotation mark
+            .replace("&#8217;", "'") // Right single quotation mark
+            .replace("&#8220;", "\"") // Left double quotation mark
+            .replace("&#8221;", "\"") // Right double quotation mark
+            .replace("&#8230;", "...") // Ellipsis
+            .replace("&amp;", "&") // Ampersand
+            .replace("&lt;", "<") // Less than
+            .replace("&gt;", ">") // Greater than
+            .replace("&nbsp;", " ") // Non-breaking space
+            .trim()
     }
     
     private fun formatHtmlContent(html: String): String {
         return html
             .replace(Regex("<.*?>"), "") // Remove HTML tags
+            .replace("&#8216;", "'") // Left single quotation mark
             .replace("&#8217;", "'") // Right single quotation mark
             .replace("&#8220;", "\"") // Left double quotation mark
             .replace("&#8221;", "\"") // Right double quotation mark

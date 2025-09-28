@@ -107,6 +107,7 @@ private fun processContent(content: String): List<ContentBlock> {
 private fun stripHtml(html: String): String {
     return html
         .replace(Regex("<.*?>"), "") // Remove HTML tags
+        .replace("&#8216;", "'") // Left single quotation mark
         .replace("&#8217;", "'") // Right single quotation mark
         .replace("&#8220;", "\"") // Left double quotation mark
         .replace("&#8221;", "\"") // Right double quotation mark

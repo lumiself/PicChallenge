@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -115,7 +116,7 @@ private fun BlogPostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-                            // Featured Image (if available)
+                            // Featured Image (if available) - optimized for fast loading
                             post.featuredImageUrl?.let { imageUrl ->
                                 com.example.picchallenge.ui.components.EnhancedImage(
                                     imageUrl = imageUrl,
@@ -123,7 +124,8 @@ private fun BlogPostItem(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(120.dp)
-                                        .padding(bottom = 12.dp)
+                                        .padding(bottom = 12.dp),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                 )
                             }
             
@@ -175,25 +177,27 @@ private fun BlogPostItem(
 
 private fun formatTitle(title: String): String {
     return title
-        .replace("&#8217;", "'")
-        .replace("&#8220;", "\"")
-        .replace("&#8221;", "\"")
-        .replace("&#8230;", "...")
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
+        .replace("&#8216;", "'") // Left single quotation mark
+        .replace("&#8217;", "'") // Right single quotation mark
+        .replace("&#8220;", "\"") // Left double quotation mark
+        .replace("&#8221;", "\"") // Right double quotation mark
+        .replace("&#8230;", "...") // Ellipsis
+        .replace("&amp;", "&") // Ampersand
+        .replace("&lt;", "<") // Less than
+        .replace("&gt;", ">") // Greater than
         .trim()
 }
 
 private fun formatExcerpt(excerpt: String): String {
     return excerpt
-        .replace("&#8217;", "'")
-        .replace("&#8220;", "\"")
-        .replace("&#8221;", "\"")
-        .replace("&#8230;", "...")
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
+        .replace("&#8216;", "'") // Left single quotation mark
+        .replace("&#8217;", "'") // Right single quotation mark
+        .replace("&#8220;", "\"") // Left double quotation mark
+        .replace("&#8221;", "\"") // Right double quotation mark
+        .replace("&#8230;", "...") // Ellipsis
+        .replace("&amp;", "&") // Ampersand
+        .replace("&lt;", "<") // Less than
+        .replace("&gt;", ">") // Greater than
         .trim()
         .takeIf { it.isNotEmpty() } ?: "Click to read the full article..."
 }

@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -96,7 +97,7 @@ fun BlogDetailScreen(
                                 .fillMaxWidth()
                                 .padding(24.dp)
                         ) {
-                            // Featured Image (if available)
+                            // Featured Image (if available) - optimized for fast loading
                             currentPost.featuredImageUrl?.let { imageUrl ->
                                 com.example.picchallenge.ui.components.EnhancedImage(
                                     imageUrl = imageUrl,
@@ -104,7 +105,8 @@ fun BlogDetailScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(200.dp)
-                                        .padding(bottom = 16.dp)
+                                        .padding(bottom = 16.dp),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                 )
                             }
                             

@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -65,12 +66,15 @@ private fun ContentWithImages(
                     }
                 }
                 is ContentElement.Image -> {
+                    // Use EnhancedImage for fast loading like contest images
                     com.example.picchallenge.ui.components.EnhancedImage(
                         imageUrl = element.url,
                         contentDescription = "Article image",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .height(250.dp) // Good size for inline images
+                            .padding(vertical = 8.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -129,7 +133,8 @@ private fun SimpleContentText(
  */
 private fun stripHtmlBasic(html: String): String {
     return html
-        .replace(Regex("<.*?>"), " ") // Remove HTML tags, replace with space
+        .replace(Regex("<.*?>"), "") // Remove HTML tags, replace with space
+        .replace("&#8216;", "'") // Left single quotation mark
         .replace("&#8217;", "'") // Right single quotation mark
         .replace("&#8220;", "\"") // Left double quotation mark
         .replace("&#8221;", "\"") // Right double quotation mark
