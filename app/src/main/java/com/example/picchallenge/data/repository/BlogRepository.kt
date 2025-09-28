@@ -3,11 +3,12 @@ package com.example.picchallenge.data.repository
 import com.example.picchallenge.data.model.BlogPostDisplay
 import com.example.picchallenge.data.model.WordPressPost
 import com.example.picchallenge.data.remote.WordPressApiService
+import com.example.picchallenge.ui.blog.ContentImageProcessor
 import com.example.picchallenge.utils.NetworkResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -99,20 +100,74 @@ class BlogRepository @Inject constructor(
     }
     
     private fun convertToDisplayModel(post: WordPressPost): BlogPostDisplay {
+        val contentImageUrls = ContentImageProcessor.extractImageUrls(post.content.rendered)
+        val featuredImageUrl = extractFeaturedImageUrl(post)
+        
         return BlogPostDisplay(
             id = post.id,
-            title = post.title.rendered,
-            excerpt = stripHtml(post.excerpt.rendered),
-            content = post.content.rendered,
+            title = formatHtmlContent(post.title.rendered),
+            excerpt = formatExcerptContent(post.excerpt.rendered),
+            content = processContentForDisplay(post.content.rendered),
             date = formatDate(post.date),
             link = post.link,
             featuredMediaId = post.featuredMedia,
+            featuredImageUrl = featuredImageUrl,
+            contentImageUrls = contentImageUrls,
             authorId = post.author
         )
     }
     
-    private fun stripHtml(html: String): String {
-        return html.replace(Regex("<.*?>"), "").trim()
+    private fun extractFeaturedImageUrl(post: WordPressPost): String? {
+        // Try to extract from _links first
+        post.links.wpFeaturedmedia.firstOrNull()?.href?.let { href ->
+            // This would need to be fetched from the media endpoint
+            // For now, we'll construct a basic URL pattern
+            return constructImageUrl(post.featuredMedia)
+        }
+        return null
+    }
+    
+    private fun constructImageUrl(mediaId: Int): String? {
+        if (mediaId == 0) return null
+        // Basic WordPress media URL pattern - this would need to be customized for your site
+        return "${getBaseUrl()}/wp-content/uploads/$mediaId.jpg"
+    }
+    
+    private fun getBaseUrl(): String {
+        // Extract base URL from the API service - this is a placeholder
+        // In a real implementation, you'd get this from your configuration
+        return "https://your-wordpress-site.com"
+    }
+    
+    private fun processContentForDisplay(html: String): String {
+        // Use the new processor that preserves image structure
+        return ContentImageProcessor.stripHtmlPreserveImages(html)
+    }
+    
+    private fun formatHtmlContent(html: String): String {
+        return html
+            .replace(Regex("<.*?>"), "") // Remove HTML tags
+            .replace("&#8217;", "'") // Right single quotation mark
+            .replace("&#8220;", "\"") // Left double quotation mark
+            .replace("&#8221;", "\"") // Right double quotation mark
+            .replace("&#8230;", "...") // Ellipsis
+            .replace("&#8211;", "–") // En dash
+            .replace("&#8212;", "—") // Em dash
+            .replace("&amp;", "&") // Ampersand
+            .replace("&lt;", "<") // Less than
+            .replace("&gt;", ">") // Greater than
+            .replace("&nbsp;", " ") // Non-breaking space
+            .replace(Regex("\\s+"), " ") // Collapse multiple spaces
+            .trim()
+    }
+    
+    private fun formatExcerptContent(html: String): String {
+        val cleanText = formatHtmlContent(html)
+        return if (cleanText.length > 150) {
+            cleanText.take(150) + "..."
+        } else {
+            cleanText
+        }
     }
     
     private fun formatDate(dateString: String): String {

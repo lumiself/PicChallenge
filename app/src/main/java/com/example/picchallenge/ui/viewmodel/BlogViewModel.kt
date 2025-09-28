@@ -23,8 +23,24 @@ class BlogViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     
+    private val _selectedPost = MutableStateFlow<BlogPostDisplay?>(null)
+    val selectedPost: StateFlow<BlogPostDisplay?> = _selectedPost.asStateFlow()
+    
     init {
         loadNewsPosts()
+    }
+    
+    fun selectPost(postId: String) {
+        viewModelScope.launch {
+            when (val result = _blogPosts.value) {
+                is NetworkResult.Success -> {
+                    _selectedPost.value = result.data.find { it.id.toString() == postId }
+                }
+                else -> {
+                    _selectedPost.value = null
+                }
+            }
+        }
     }
     
     fun loadNewsPosts(page: Int = 1, perPage: Int = 10) {

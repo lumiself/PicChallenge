@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.picchallenge.data.model.BlogPostDisplay
@@ -114,20 +115,38 @@ private fun BlogPostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Featured Image (if available)
+            post.featuredImageUrl?.let { imageUrl ->
+                ArticleImage(
+                    imageUrl = imageUrl,
+                    contentDescription = "Article thumbnail",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .padding(bottom = 12.dp)
+                )
+            }
+            
+            // Title with better formatting
             Text(
-                text = post.title,
-                style = MaterialTheme.typography.titleMedium,
+                text = formatTitle(post.title),
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = TextGray
+                color = TextGray,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             
             Spacer(modifier = Modifier.height(8.dp))
             
+            // Excerpt with better formatting
             Text(
-                text = post.excerpt,
+                text = formatExcerpt(post.excerpt),
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextGray.copy(alpha = 0.8f),
-                maxLines = 3
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -152,6 +171,31 @@ private fun BlogPostItem(
             }
         }
     }
+}
+
+private fun formatTitle(title: String): String {
+    return title
+        .replace("&#8217;", "'")
+        .replace("&#8220;", "\"")
+        .replace("&#8221;", "\"")
+        .replace("&#8230;", "...")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .trim()
+}
+
+private fun formatExcerpt(excerpt: String): String {
+    return excerpt
+        .replace("&#8217;", "'")
+        .replace("&#8220;", "\"")
+        .replace("&#8221;", "\"")
+        .replace("&#8230;", "...")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .trim()
+        .takeIf { it.isNotEmpty() } ?: "Click to read the full article..."
 }
 
 @Composable

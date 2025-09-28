@@ -1,0 +1,143 @@
+package com.example.picchallenge.ui.blog
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+/**
+ * Enhanced content display that supports images and rich formatting
+ * Processes content to extract and display images properly
+ */
+@Composable
+fun EnhancedArticleContent(
+    content: String,
+    featuredImageUrl: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Display featured image if available
+        featuredImageUrl?.let { imageUrl ->
+            ArticleImage(
+                imageUrl = imageUrl,
+                contentDescription = "Featured image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+        }
+        
+        // Process and display content with images
+        ContentWithImages(content = content)
+    }
+}
+
+/**
+ * Processes content to extract and display images inline with text
+ */
+@Composable
+private fun ContentWithImages(
+    content: String,
+    modifier: Modifier = Modifier
+) {
+    val elements = remember(content) {
+        ContentImageProcessor.processContentWithImages(content)
+    }
+    
+    Column(modifier = modifier.fillMaxWidth()) {
+        elements.forEach { element: ContentElement ->
+            when (element) {
+                is ContentElement.Text -> {
+                    if (element.content.isNotBlank()) {
+                        Text(
+                            text = element.content,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            lineHeight = 24.sp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+                is ContentElement.Image -> {
+                    ArticleImage(
+                        imageUrl = element.url,
+                        contentDescription = "Article image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Simple enhanced content display with better formatting but still very safe
+ */
+@Composable
+private fun SimpleEnhancedContentText(
+    content: String,
+    modifier: Modifier = Modifier
+) {
+    val cleanContent = stripHtmlBasic(content)
+    
+    // Split content into paragraphs for better readability
+    val paragraphs = cleanContent.split("\n\n").filter { it.isNotBlank() }
+    
+    Column(modifier = modifier.fillMaxWidth()) {
+        paragraphs.forEach { paragraph ->
+            Text(
+                text = paragraph.trim(),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 24.sp,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Simple fallback content display that just strips HTML and shows plain text
+ * This ensures the app never breaks even if the enhanced formatting fails
+ */
+@Composable
+private fun SimpleContentText(
+    content: String,
+    modifier: Modifier = Modifier
+) {
+    val cleanContent = stripHtmlBasic(content)
+    
+    Text(
+        text = cleanContent,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        lineHeight = 24.sp,
+        modifier = modifier.fillMaxWidth()
+    )
+}
+
+/**
+ * Basic HTML stripping that's very safe and won't cause issues
+ */
+private fun stripHtmlBasic(html: String): String {
+    return html
+        .replace(Regex("<.*?>"), " ") // Remove HTML tags, replace with space
+        .replace("&#8217;", "'") // Right single quotation mark
+        .replace("&#8220;", "\"") // Left double quotation mark
+        .replace("&#8221;", "\"") // Right double quotation mark
+        .replace("&#8230;", "...") // Ellipsis
+        .replace("&amp;", "&") // Ampersand
+        .replace("&lt;", "<") // Less than
+        .replace("&gt;", ">") // Greater than
+        .replace("&nbsp;", " ") // Non-breaking space
+        .replace(Regex("\\s+"), " ") // Collapse multiple spaces
+        .trim()
+}

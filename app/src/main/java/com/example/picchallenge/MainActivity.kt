@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.picchallenge.ui.blog.BlogScreen
+import com.example.picchallenge.ui.blog.BlogDetailScreen
 import com.example.picchallenge.ui.contest.ContestListScreen
 import com.example.picchallenge.ui.contest.ContestDetailScreen
 import com.example.picchallenge.ui.auth.LoginScreen
@@ -83,7 +84,8 @@ fun MainScreenWithBottomNavigation() {
                         navController.popBackStack()
                     },
                     onPostClick = { postId ->
-                        // Handle post click - could navigate to detailed post view
+                        // Navigate to blog detail screen
+                        navController.navigate("blog/$postId")
                     }
                 )
             }
@@ -150,6 +152,15 @@ fun MainScreenWithBottomNavigation() {
                     onNavigateBack = {
                         navController.popBackStack()
                     }
+                )
+            }
+            
+            // Blog detail screen
+            composable("blog/{postId}") { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
+                BlogDetailScreen(
+                    postId = postId,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

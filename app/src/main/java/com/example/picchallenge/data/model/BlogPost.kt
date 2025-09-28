@@ -127,5 +127,7 @@ data class BlogPostDisplay(
     val date: String,
     val link: String,
     val featuredMediaId: Int,
+    val featuredImageUrl: String? = null, // Featured image URL
+    val contentImageUrls: List<String> = emptyList(), // Inline image URLs
     val authorId: Int
 )
