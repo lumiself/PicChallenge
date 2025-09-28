@@ -118,25 +118,10 @@ class BlogRepository @Inject constructor(
     }
     
     private fun extractFeaturedImageUrl(post: WordPressPost): String? {
-        // Try to extract from _links first
-        post.links.wpFeaturedmedia.firstOrNull()?.href?.let { href ->
-            // This would need to be fetched from the media endpoint
-            // For now, we'll construct a basic URL pattern
-            return constructImageUrl(post.featuredMedia)
-        }
-        return null
-    }
-    
-    private fun constructImageUrl(mediaId: Int): String? {
-        if (mediaId == 0) return null
-        // Basic WordPress media URL pattern - this would need to be customized for your site
-        return "${getBaseUrl()}/wp-content/uploads/$mediaId.jpg"
-    }
-    
-    private fun getBaseUrl(): String {
-        // Extract base URL from the API service - this is a placeholder
-        // In a real implementation, you'd get this from your configuration
-        return "https://your-wordpress-site.com"
+        // Try to extract the first image from the content as featured image
+        // This is more reliable than trying to construct fake URLs
+        val contentImages = ContentImageProcessor.extractImageUrls(post.content.rendered)
+        return contentImages.firstOrNull()
     }
     
     private fun processContentForDisplay(html: String): String {

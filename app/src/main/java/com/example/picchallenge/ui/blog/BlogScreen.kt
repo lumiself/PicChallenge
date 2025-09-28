@@ -115,17 +115,17 @@ private fun BlogPostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Featured Image (if available)
-            post.featuredImageUrl?.let { imageUrl ->
-                ArticleImage(
-                    imageUrl = imageUrl,
-                    contentDescription = "Article thumbnail",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .padding(bottom = 12.dp)
-                )
-            }
+                            // Featured Image (if available)
+                            post.featuredImageUrl?.let { imageUrl ->
+                                com.example.picchallenge.ui.components.EnhancedImage(
+                                    imageUrl = imageUrl,
+                                    contentDescription = "Article thumbnail",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .padding(bottom = 12.dp)
+                                )
+                            }
             
             // Title with better formatting
             Text(

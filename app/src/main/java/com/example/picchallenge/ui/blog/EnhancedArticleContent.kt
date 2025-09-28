@@ -24,13 +24,13 @@ fun EnhancedArticleContent(
     Column(modifier = modifier.fillMaxWidth()) {
         // Display featured image if available
         featuredImageUrl?.let { imageUrl ->
-            ArticleImage(
-                imageUrl = imageUrl,
-                contentDescription = "Featured image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
+                            com.example.picchallenge.ui.components.EnhancedImage(
+                                imageUrl = imageUrl,
+                                contentDescription = "Featured image",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp)
+                            )
         }
         
         // Process and display content with images
@@ -65,7 +65,7 @@ private fun ContentWithImages(
                     }
                 }
                 is ContentElement.Image -> {
-                    ArticleImage(
+                    com.example.picchallenge.ui.components.EnhancedImage(
                         imageUrl = element.url,
                         contentDescription = "Article image",
                         modifier = Modifier

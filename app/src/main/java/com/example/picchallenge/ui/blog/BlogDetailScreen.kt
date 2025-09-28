@@ -98,7 +98,7 @@ fun BlogDetailScreen(
                         ) {
                             // Featured Image (if available)
                             currentPost.featuredImageUrl?.let { imageUrl ->
-                                ArticleImage(
+                                com.example.picchallenge.ui.components.EnhancedImage(
                                     imageUrl = imageUrl,
                                     contentDescription = "Featured image",
                                     modifier = Modifier

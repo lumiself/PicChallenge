@@ -9,9 +9,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 
 /**
  * Processes content to extract and display images properly
@@ -107,6 +109,7 @@ sealed class ContentElement {
 
 /**
  * Composable for displaying article images with proper loading states
+ * Uses the same optimized approach as EnhancedImage for consistency
  */
 @Composable
 fun ArticleImage(
@@ -114,7 +117,16 @@ fun ArticleImage(
     contentDescription: String? = null,
     modifier: Modifier = Modifier
 ) {
-    val painter = rememberAsyncImagePainter(model = imageUrl)
+    val context = LocalContext.current
+    
+    val imageRequest = remember(imageUrl) {
+        ImageRequest.Builder(context)
+            .data(imageUrl)
+            .crossfade(true)
+            .build()
+    }
+    
+    val painter = rememberAsyncImagePainter(model = imageRequest)
     
     Box(
         modifier = modifier
