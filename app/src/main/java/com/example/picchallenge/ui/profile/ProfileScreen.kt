@@ -6,35 +6,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.picchallenge.ui.theme.*
-import com.example.picchallenge.ui.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onLoginClick: () -> Unit,
-    onNavigateBack: () -> Unit,
-    onUploadPhoto: (Int) -> Unit,
-    onViewSubmissions: () -> Unit,
-    loginViewModel: LoginViewModel = hiltViewModel()
+    onNavigateBack: () -> Unit
 ) {
-    // Simple login state - assume not logged in for demo
-    var isLoggedIn by remember { mutableStateOf(false) }
-    
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { 
                     Text(
-                        "Profile",
+                        "Join PicChallenge",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -59,143 +50,13 @@ fun ProfileScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (isLoggedIn) {
-                LoggedInProfile(
-                    onLogout = { isLoggedIn = false },
-                    onUploadPhoto = onUploadPhoto,
-                    onViewSubmissions = onViewSubmissions
-                )
-            } else {
-                GuestProfile(
-                    onLoginClick = { isLoggedIn = true }
-                )
-            }
+            JoinInstructionsScreen()
         }
     }
 }
 
 @Composable
-private fun LoggedInProfile(
-    onLogout: () -> Unit,
-    onUploadPhoto: (Int) -> Unit,
-    onViewSubmissions: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // User Header
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = CardWhite
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = PrimaryBlue.copy(alpha = 0.1f),
-                    modifier = Modifier.size(80.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Avatar",
-                            tint = PrimaryBlue,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "Welcome Back!",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = TextGray
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "You're logged in and ready to participate in photo contests",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextGray.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-        
-        // Quick Actions
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = CardWhite
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Quick Actions",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextGray,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                Button(
-                    onClick = { onUploadPhoto(1) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Upload Photo to Contest")
-                }
-                
-                OutlinedButton(
-                    onClick = onViewSubmissions,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("View My Submissions")
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        Button(
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = StatusRed
-            )
-        ) {
-            Text("Logout")
-        }
-    }
-}
-
-@Composable
-private fun GuestProfile(
-    onLoginClick: () -> Unit
-) {
+private fun JoinInstructionsScreen() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -299,12 +160,31 @@ private fun GuestProfile(
         
         Spacer(modifier = Modifier.weight(1f))
         
-        Button(
-            onClick = onLoginClick,
+        // Additional Info Card
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = BackgroundLightGreen
+            )
         ) {
-            Text("Login to Your Account")
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Why Join?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextGray,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                Text(
+                    text = "• Participate in exciting photo contests\n• Showcase your photography skills\n• Win amazing prizes\n• Join a community of photographers\n• Get feedback on your work",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextGray.copy(alpha = 0.8f)
+                )
+            }
         }
     }
 }

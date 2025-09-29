@@ -16,13 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.picchallenge.ui.theme.*
-import com.example.picchallenge.ui.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MySubmissionsScreen(
-    onNavigateBack: () -> Unit,
-    loginViewModel: LoginViewModel = hiltViewModel()
+    onNavigateBack: () -> Unit
 ) {
     // Simple state - assume not logged in for demo
     var isLoggedIn by remember { mutableStateOf(false) }
