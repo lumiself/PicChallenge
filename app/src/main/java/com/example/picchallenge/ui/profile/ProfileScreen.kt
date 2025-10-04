@@ -2,9 +2,15 @@ package com.example.picchallenge.ui.profile
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,6 +19,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import com.example.picchallenge.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,7 +42,7 @@ fun ProfileScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -47,144 +57,327 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            JoinInstructionsScreen()
+            WelcomeCard()
+            HowToJoinSection()
+            WhyJoinSection()
         }
     }
 }
 
 @Composable
-private fun JoinInstructionsScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+private fun WelcomeCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
     ) {
-        // Welcome Message
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = CardWhite
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Profile Icon Placeholder
+            Surface(
+                shape = CircleShape,
+                color = PrimaryBlue.copy(alpha = 0.1f),
+                modifier = Modifier.size(64.dp)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = PrimaryBlue.copy(alpha = 0.1f),
-                    modifier = Modifier.size(80.dp)
+                Box(
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = PrimaryBlue,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile",
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "Welcome to PicChallenge",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = TextGray
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Express your true self and let your inner beauty shine.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextGray.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "We celebrate genuine self-expression through impactful Challenges that are designed to help you win hearts, not just votes.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextGray.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun HowToJoinSection() {
+    val context = LocalContext.current
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "How to Join",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = TextGray,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            
+            // Step 1
+            StepListItem(
+                stepNumber = 1,
+                text = "Begin by contacting us via WhatsApp, Call, or Email provided below to receive your entry details."
+            )
+            
+            // Step 2
+            StepListItem(
+                stepNumber = 2,
+                text = "Provide your name, contact details, and a brief description of your interest."
+            )
+            
+            // Step 3
+            StepListItem(
+                stepNumber = 3,
+                text = "Submit your photos and complete your registration. Your entry will go live shortly!"
+            )
+            
+            // Step 4
+            StepListItem(
+                stepNumber = 4,
+                text = "Start earning votes from your friends and community and win awesome prizes!"
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Divider()
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Contact Buttons
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // WhatsApp Button (Primary Action - Green)
+                Button(
+                    onClick = { 
+                        try {
+                            val uri = Uri.parse("https://wa.me/263782684837")
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            intent.setPackage("com.whatsapp")
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Fallback if WhatsApp is not installed
+                            val uri = Uri.parse("https://wa.me/263782684837")
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            context.startActivity(intent)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF10B981)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Phone,
+                        contentDescription = "WhatsApp",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Message on WhatsApp",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                // Phone Call Button (Secondary Primary Action - Indigo)
+                Button(
+                    onClick = { 
+                        try {
+                            val uri = Uri.parse("tel:+263782684837")
+                            val intent = Intent(Intent.ACTION_DIAL, uri)
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Unable to open phone dialer", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4F46E5)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Phone,
+                        contentDescription = "Call",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Place a Phone Call",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 
-                Text(
-                    text = "Welcome to PicChallenge",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = TextGray
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Join our photo contests and showcase your photography skills",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextGray.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
+                // Email Button (Tertiary Action - Outline Blue)
+                OutlinedButton(
+                    onClick = { 
+                        try {
+                            val uri = Uri.parse("mailto:modeling@lumiself.co.zw")
+                            val intent = Intent(Intent.ACTION_SENDTO, uri)
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Unable to open email client", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = "Email",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Send an Email",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF3B82F6)
+                    )
+                }
             }
         }
-        
-        // Registration Info
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = CardWhite
-            )
+    }
+}
+
+@Composable
+private fun StepListItem(stepNumber: Int, text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // Numbered Circle (Step Pill)
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(PrimaryBlue, shape = CircleShape),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "How to Join",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextGray,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                Text(
-                    text = "Registration is currently handled manually to ensure quality participants. Here's how to join:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextGray.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                Text(
-                    text = "1. Contact us via WhatsApp or email\n2. Provide your basic information\n3. Wait for approval\n4. Start participating!",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextGray.copy(alpha = 0.8f)
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Text(
-                    text = "Contact: +263 782 684 837\nEmail: modeling@lumiself.co.zw",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = PrimaryBlue,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        // Additional Info Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = BackgroundLightGreen
+            Text(
+                text = stepNumber.toString(),
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold
             )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Why Join?",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextGray,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
-                Text(
-                    text = "• Participate in exciting photo contests\n• Showcase your photography skills\n• Win amazing prizes\n• Join a community of photographers\n• Get feedback on your work",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextGray.copy(alpha = 0.8f)
-                )
-            }
         }
+        
+        // Text Content
+        Text(
+            text = text,
+            modifier = Modifier.padding(start = 12.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextGray.copy(alpha = 0.8f)
+        )
+    }
+}
+
+@Composable
+private fun WhyJoinSection() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "Why Join?",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = TextGray,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            
+            WhyJoinItem(
+                text = "Showcase your authentic self in unique and meaningful challenges."
+            )
+            
+            WhyJoinItem(
+                text = "Compete to win based on community votes that value your heart."
+            )
+            
+            WhyJoinItem(
+                text = "Join a supportive community built on mutual appreciation and positivity."
+            )
+        }
+    }
+}
+
+@Composable
+private fun WhyJoinItem(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            imageVector = Icons.Default.Phone, // Using phone as checkmark placeholder
+            contentDescription = "Check",
+            tint = Color(0xFF10B981),
+            modifier = Modifier.size(16.dp)
+        )
+        
+        Spacer(modifier = Modifier.width(8.dp))
+        
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextGray.copy(alpha = 0.8f)
+        )
     }
 }
