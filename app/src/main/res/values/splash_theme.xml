@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash Screen Theme -->
+    <style name="Theme.PicChallenge.Splash" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background to your brand color -->
+        <item name="windowSplashScreenBackground">#6366f1</item>
+        
+        <!-- Use windowSplashScreenAnimatedIcon to add either a drawable or animated drawable -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        
+        <!-- Set the splash screen animation duration (default is 1000ms) -->
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+        
+        <!-- Set the theme to be used for the activity after splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.PicChallenge</item>
+        
+        <!-- Status bar and navigation bar colors -->
+        <item name="android:statusBarColor">#6366f1</item>
+        <item name="android:navigationBarColor">#6366f1</item>
+    </style>
+</resources>

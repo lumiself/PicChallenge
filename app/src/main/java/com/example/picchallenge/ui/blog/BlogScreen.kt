@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.picchallenge.data.model.BlogPostDisplay
 import com.example.picchallenge.ui.theme.*
@@ -35,25 +37,37 @@ fun BlogScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "News & Updates",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+            Surface(
+                modifier = Modifier
+                    .shadow(elevation = 4.dp)
+                    .zIndex(1f),
+                color = SurfaceWhite
+            ) {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            "News & Updates",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.Default.ArrowBack, 
+                                contentDescription = "Back",
+                                tint = TextPrimary
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = TextPrimary,
+                        navigationIconContentColor = TextPrimary
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
                 )
-            )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -164,12 +178,12 @@ private fun BlogPostItem(
                     color = TextGray.copy(alpha = 0.6f)
                 )
                 
-                Text(
-                    text = "Read More →",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = PrimaryBlue,
-                    fontWeight = FontWeight.Medium
-                )
+                            Text(
+                                text = "Read More →",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = PrimaryModern,
+                                fontWeight = FontWeight.Medium
+                            )
             }
         }
     }

@@ -15,11 +15,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.picchallenge.ui.theme.PrimaryBlue
-import com.example.picchallenge.ui.theme.CardWhite
-import com.example.picchallenge.ui.theme.TextGray
-import com.example.picchallenge.ui.theme.StatusRed
+import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.BlogViewModel
 import com.example.picchallenge.utils.NetworkResult
 
@@ -41,25 +40,37 @@ fun BlogDetailScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Article",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+            Surface(
+                modifier = Modifier
+                    .shadow(elevation = 4.dp)
+                    .zIndex(1f),
+                color = SurfaceWhite
+            ) {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            "Article",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.Default.ArrowBack, 
+                                contentDescription = "Back",
+                                tint = TextPrimary
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = TextPrimary,
+                        navigationIconContentColor = TextPrimary
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
                 )
-            )
+            }
         }
     ) { paddingValues ->
         when {
