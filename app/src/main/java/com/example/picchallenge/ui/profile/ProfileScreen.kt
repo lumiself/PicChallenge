@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -32,25 +34,37 @@ fun ProfileScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Join PicChallenge",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+            Surface(
+                modifier = Modifier
+                    .shadow(elevation = 4.dp)
+                    .zIndex(1f),
+                color = SurfaceWhite
+            ) {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            "Join PicChallenge",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack, 
+                                contentDescription = "Back",
+                                tint = TextPrimary
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = TextPrimary,
+                        navigationIconContentColor = TextPrimary
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
                 )
-            )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -63,7 +77,6 @@ fun ProfileScreen(
         ) {
             WelcomeCard()
             HowToJoinSection()
-            WhyJoinSection()
         }
     }
 }
@@ -89,7 +102,7 @@ private fun WelcomeCard() {
             // Profile Icon Placeholder
             Surface(
                 shape = CircleShape,
-                color = PrimaryBlue.copy(alpha = 0.1f),
+                color = PrimaryModern.copy(alpha = 0.1f),
                 modifier = Modifier.size(64.dp)
             ) {
                 Box(
@@ -98,7 +111,7 @@ private fun WelcomeCard() {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profile",
-                        tint = PrimaryBlue,
+                        tint = PrimaryModern,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -298,7 +311,7 @@ private fun StepListItem(stepNumber: Int, text: String) {
         Box(
             modifier = Modifier
                 .size(28.dp)
-                .background(PrimaryBlue, shape = CircleShape),
+                .background(PrimaryModern, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -313,69 +326,6 @@ private fun StepListItem(stepNumber: Int, text: String) {
         Text(
             text = text,
             modifier = Modifier.padding(start = 12.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextGray.copy(alpha = 0.8f)
-        )
-    }
-}
-
-@Composable
-private fun WhyJoinSection() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Text(
-                text = "Why Join?",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = TextGray,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            WhyJoinItem(
-                text = "Showcase your authentic self in unique and meaningful challenges."
-            )
-            
-            WhyJoinItem(
-                text = "Compete to win based on community votes that value your heart."
-            )
-            
-            WhyJoinItem(
-                text = "Join a supportive community built on mutual appreciation and positivity."
-            )
-        }
-    }
-}
-
-@Composable
-private fun WhyJoinItem(text: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Icon(
-            imageVector = Icons.Default.Phone, // Using phone as checkmark placeholder
-            contentDescription = "Check",
-            tint = Color(0xFF10B981),
-            modifier = Modifier.size(16.dp)
-        )
-        
-        Spacer(modifier = Modifier.width(8.dp))
-        
-        Text(
-            text = text,
             style = MaterialTheme.typography.bodyMedium,
             color = TextGray.copy(alpha = 0.8f)
         )
