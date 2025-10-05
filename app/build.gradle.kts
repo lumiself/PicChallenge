@@ -103,6 +103,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.5.4")
     implementation("androidx.compose.material:material-icons-extended:1.5.4")
     
+    // Splash Screen API for Android 12+
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
