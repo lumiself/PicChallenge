@@ -2,9 +2,6 @@ package com.example.picchallenge.data.repository
 
 import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.data.model.ContestResponse
-import com.example.picchallenge.data.model.CreateContestRequest
-import com.example.picchallenge.data.model.CreateContestResponse
-import com.example.picchallenge.data.model.SuccessResponse
 import com.example.picchallenge.data.remote.PhotoContestApiService
 import com.example.picchallenge.utils.NetworkResult
 import kotlinx.coroutines.Dispatchers
@@ -73,87 +70,6 @@ class ContestRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val response = apiService.getContestPhotos(contestId, page, perPage, order)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun getUserContests(
-        token: String,
-        status: String = "all"
-    ): NetworkResult<List<Contest>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = apiService.getUserContests(token, status)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun createContest(
-        token: String,
-        contestRequest: CreateContestRequest
-    ): NetworkResult<CreateContestResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = apiService.createContest(token, contestRequest)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun updateContest(
-        token: String,
-        contestId: Int,
-        contestRequest: CreateContestRequest
-    ): NetworkResult<SuccessResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = apiService.updateContest(token, contestId, contestRequest)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun deleteContest(
-        token: String,
-        contestId: Int
-    ): NetworkResult<SuccessResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = apiService.deleteContest(token, contestId)
                 if (response.isSuccessful) {
                     response.body()?.let {
                         NetworkResult.Success(it)

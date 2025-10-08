@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Signing files - NEVER commit these to version control
+*.keystore
+*.jks
+keystore.properties
+signing.properties

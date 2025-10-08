@@ -47,16 +47,3 @@ data class RatingResponse(
     @SerializedName("new_average") val newAverage: Double,
     @SerializedName("total_votes") val totalVotes: Int
 )
-
-data class UploadResponse(
-    @SerializedName("success") val success: Boolean,
-    @SerializedName("message") val message: String,
-    @SerializedName("photo_id") val photoId: Int,
-    @SerializedName("photo") val photo: Photo
-)
-
-data class PhotoUpdateRequest(
-    @SerializedName("title") val title: String? = null,
-    @SerializedName("description") val description: String? = null,
-    @SerializedName("category_id") val categoryId: Int? = null
-)

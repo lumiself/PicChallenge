@@ -4,9 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.data.model.ContestResponse
-import com.example.picchallenge.data.model.CreateContestRequest
-import com.example.picchallenge.data.model.CreateContestResponse
-import com.example.picchallenge.data.model.SuccessResponse
 import com.example.picchallenge.data.model.PhotoResponse
 import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.data.model.ImageDownloadState
@@ -34,8 +31,6 @@ class ContestViewModel @Inject constructor(
     private val _contestDetails = MutableStateFlow<NetworkResult<Contest>?>(null)
     val contestDetails: StateFlow<NetworkResult<Contest>?> = _contestDetails.asStateFlow()
 
-    private val _userContests = MutableStateFlow<NetworkResult<List<Contest>>>(NetworkResult.Loading)
-    val userContests: StateFlow<NetworkResult<List<Contest>>> = _userContests.asStateFlow()
 
     private val _contestPhotos = MutableStateFlow<NetworkResult<PhotoResponse>>(NetworkResult.Loading)
     val contestPhotos: StateFlow<NetworkResult<PhotoResponse>> = _contestPhotos.asStateFlow()
@@ -116,42 +111,6 @@ class ContestViewModel @Inject constructor(
         }
     }
 
-    fun loadUserContests(token: String, status: String = "all") {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _userContests.value = NetworkResult.Loading
-            val result = contestRepository.getUserContests(token, status)
-            _userContests.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun createContest(token: String, contestRequest: CreateContestRequest) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = contestRepository.createContest(token, contestRequest)
-            // Handle result - could emit to a separate state flow for creation results
-            _isLoading.value = false
-        }
-    }
-
-    fun updateContest(token: String, contestId: Int, contestRequest: CreateContestRequest) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = contestRepository.updateContest(token, contestId, contestRequest)
-            // Handle result - could emit to a separate state flow for update results
-            _isLoading.value = false
-        }
-    }
-
-    fun deleteContest(token: String, contestId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = contestRepository.deleteContest(token, contestId)
-            // Handle result - could emit to a separate state flow for deletion results
-            _isLoading.value = false
-        }
-    }
 
     fun refreshContests() {
         loadContests()

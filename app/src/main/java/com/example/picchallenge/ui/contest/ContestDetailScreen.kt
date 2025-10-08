@@ -12,7 +12,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,7 +48,6 @@ private fun isUserLoggedIn(): Boolean {
 fun ContestDetailScreen(
     contestId: Int,
     onNavigateBack: () -> Unit,
-    onUploadPhoto: () -> Unit,
     onViewSubmissions: () -> Unit,
     contestViewModel: ContestViewModel = hiltViewModel()
 ) {
@@ -141,18 +139,6 @@ fun ContestDetailScreen(
                         navigationIconContentColor = TextPrimary
                     )
                 )
-            }
-        },
-        floatingActionButton = {
-            // Only show floating button for logged-in users with active contests
-            if (contest?.status?.equals("active", ignoreCase = true) == true && isUserLoggedIn()) {
-                FloatingActionButton(
-                    onClick = onUploadPhoto,
-                    containerColor = PrimaryModern,
-                    contentColor = Color.White
-                ) {
-                    Icon(Icons.Default.Upload, contentDescription = "Upload Photo")
-                }
             }
         }
     ) { paddingValues ->
@@ -484,7 +470,7 @@ private fun ErrorState(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                     Icon(
-                        imageVector = Icons.Default.Upload,
+                        imageVector = Icons.Default.Clear,
                         contentDescription = null,
                         tint = StatusRed,
                         modifier = Modifier.size(64.dp)
@@ -882,7 +868,7 @@ private fun EmptyContestantsMessage() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.Upload,
+                imageVector = Icons.Default.Clear,
                 contentDescription = null,
                 tint = PrimaryBlue.copy(alpha = 0.6f),
                 modifier = Modifier.size(48.dp)

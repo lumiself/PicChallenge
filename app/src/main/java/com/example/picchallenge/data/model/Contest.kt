@@ -26,25 +26,6 @@ data class ContestResponse(
     @SerializedName("pages") val pages: Int
 )
 
-data class CreateContestRequest(
-    @SerializedName("contest_name") val contestName: String,
-    @SerializedName("contest_start") val contestStart: String,
-    @SerializedName("contest_end") val contestEnd: String,
-    @SerializedName("contest_vote_start") val contestVoteStart: String,
-    @SerializedName("contest_register_end") val contestRegisterEnd: String,
-    @SerializedName("contest_condition") val contestCondition: String? = null,
-    @SerializedName("image_per_user") val imagePerUser: Int? = 5,
-    @SerializedName("vote_frequency") val voteFrequency: Int? = 1,
-    @SerializedName("gallery_layout") val galleryLayout: Int? = 1,
-    @SerializedName("contest_mode") val contestMode: Int? = 1
-)
-
-data class CreateContestResponse(
-    @SerializedName("success") val success: Boolean,
-    @SerializedName("message") val message: String,
-    @SerializedName("contest_id") val contestId: Int
-)
-
 data class Category(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,

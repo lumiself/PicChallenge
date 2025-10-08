@@ -5,11 +5,6 @@ import com.example.picchallenge.data.remote.PhotoContestApiService
 import com.example.picchallenge.utils.NetworkResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -117,107 +112,6 @@ class PhotoRepository @Inject constructor(
             try {
                 val ratingRequest = RatingRequest(rating)
                 val response = apiService.ratePhoto(photoId, ratingRequest)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun getUserPhotos(
-        token: String,
-        page: Int = 1,
-        contestId: Int? = null
-    ): NetworkResult<PhotoResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = apiService.getUserPhotos(token, page, contestId)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun uploadPhoto(
-        token: String,
-        imageFile: File,
-        contestId: Int,
-        title: String? = null,
-        description: String? = null,
-        categoryId: Int? = null,
-        cameraModel: String? = null
-    ): NetworkResult<UploadResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                // Create multipart body for image
-                val requestFile = imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
-                
-                // Create request bodies for other parameters
-                val contestIdBody = contestId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-                val titleBody = title?.toRequestBody("text/plain".toMediaTypeOrNull())
-                val descriptionBody = description?.toRequestBody("text/plain".toMediaTypeOrNull())
-                val categoryIdBody = categoryId?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull())
-                val cameraModelBody = cameraModel?.toRequestBody("text/plain".toMediaTypeOrNull())
-
-                val response = apiService.uploadPhoto(
-                    token, imagePart, contestIdBody, titleBody, descriptionBody, categoryIdBody, cameraModelBody
-                )
-                
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun updatePhoto(
-        token: String,
-        photoId: Int,
-        title: String? = null,
-        description: String? = null,
-        categoryId: Int? = null
-    ): NetworkResult<Photo> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val updateRequest = PhotoUpdateRequest(title, description, categoryId)
-                val response = apiService.updatePhoto(token, photoId, updateRequest)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        NetworkResult.Success(it)
-                    } ?: NetworkResult.Error("Empty response body")
-                } else {
-                    NetworkResult.Error("Error: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                NetworkResult.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun deletePhoto(token: String, photoId: Int): NetworkResult<SuccessResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = apiService.deletePhoto(token, photoId)
                 if (response.isSuccessful) {
                     response.body()?.let {
                         NetworkResult.Success(it)

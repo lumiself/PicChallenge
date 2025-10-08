@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash Screen Icon Guidelines -->
+    <!-- 
+    ANDROID SPLASH SCREEN ICON REQUIREMENTS:
+    
+    The splash screen icon appears in a circular container at the center of the screen.
+    Common issues and solutions:
+    
+    1. VERTICAL SQUASHING: This happens when the icon is too tall or doesn't fit the circular container properly.
+    
+    2. RECOMMENDED ICON SPECS:
+       - Format: PNG with transparency
+       - Size: 288×288 dp (this is the standard Android splash screen icon size)
+       - Aspect Ratio: 1:1 (square) or designed to fit in a circle
+       - Safe Zone: Keep important elements within 192×192 dp center area
+       - Background: Transparent
+       - Padding: Include at least 48dp padding around your logo
+    
+    3. DESIGN TIPS:
+       - Create a square canvas (288×288 dp) in Photoshop
+       - Place your logo in the center with proper padding
+       - Ensure the logo fits well within a circular mask
+       - Test with circular cropping to see how it will appear
+    
+    4. ALTERNATIVE SOLUTIONS:
+       - Use a circular background behind your logo
+       - Create a version of your logo specifically for splash screens
+       - Consider using just the icon part of your logo (without text)
+    
+    5. TESTING:
+       - Build and install the app
+       - Cold start the app to see the splash screen
+       - The icon should appear centered and properly proportioned
+    -->
+</resources>

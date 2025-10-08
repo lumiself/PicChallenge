@@ -1,0 +1,23 @@
+// Add this signing configuration to your app/build.gradle.kts file
+// inside the android { } block, before buildTypes
+
+signingConfigs {
+    create("release") {
+        storeFile = file("picchallenge-release.keystore")
+        storePassword = "your_keystore_password"
+        keyAlias = "picchallenge"
+        keyPassword = "your_key_password"
+    }
+}
+
+// Then modify your release buildType to use the signing config:
+buildTypes {
+    release {
+        isMinifyEnabled = true // Enable code shrinking for release
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
+        signingConfig = signingConfigs.getByName("release")
+    }
+}

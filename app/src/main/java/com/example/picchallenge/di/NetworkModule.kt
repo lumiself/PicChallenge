@@ -1,6 +1,5 @@
 package com.example.picchallenge.di
 
-import com.example.picchallenge.data.remote.JwtAuthInterceptor
 import com.example.picchallenge.data.remote.PhotoContestApiService
 import com.example.picchallenge.data.repository.SettingsRepository
 import dagger.Module
@@ -31,12 +30,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        loggingInterceptor: HttpLoggingInterceptor,
-        jwtAuthInterceptor: com.example.picchallenge.data.remote.JwtAuthInterceptor
+        loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
-            .addInterceptor(jwtAuthInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

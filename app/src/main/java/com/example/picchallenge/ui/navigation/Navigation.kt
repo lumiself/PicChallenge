@@ -34,9 +34,6 @@ fun PicChallengeNavigation(
             ContestDetailScreen(
                 contestId = contestId,
                 onNavigateBack = { navController.popBackStack() },
-                onUploadPhoto = {
-                    // Upload functionality removed - no action needed
-                },
                 onViewSubmissions = {
                     navController.navigate("submissions")
                 }

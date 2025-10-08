@@ -13,17 +13,6 @@ data class User(
     @SerializedName("avatar_url") val avatarUrl: String?
 )
 
-data class LoginRequest(
-    @SerializedName("username") val username: String,
-    @SerializedName("password") val password: String
-)
-
-data class LoginResponse(
-    @SerializedName("token") val token: String,
-    @SerializedName("user_email") val userEmail: String,
-    @SerializedName("user_nicename") val userNicename: String,
-    @SerializedName("user_display_name") val userDisplayName: String
-)
 
 data class ProfileUpdateRequest(
     @SerializedName("first_name") val firstName: String? = null,
@@ -41,23 +30,12 @@ data class ProfileUpdateRequest(
     @SerializedName("instagram_page") val instagramPage: String? = null
 )
 
-data class PasswordChangeRequest(
-    @SerializedName("current_password") val currentPassword: String,
-    @SerializedName("new_password") val newPassword: String,
-    @SerializedName("confirm_password") val confirmPassword: String
-)
 
 data class SuccessResponse(
     @SerializedName("success") val success: Boolean,
     @SerializedName("message") val message: String
 )
 
-data class AvatarUploadResponse(
-    @SerializedName("success") val success: Boolean,
-    @SerializedName("message") val message: String,
-    @SerializedName("avatar_id") val avatarId: Int,
-    @SerializedName("avatar_url") val avatarUrl: String
-)
 
 data class VoteHistoryResponse(
     @SerializedName("data") val data: List<VoteHistoryItem>,

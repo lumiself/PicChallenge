@@ -1,10 +1,8 @@
 package com.example.picchallenge.di
 
 import android.content.Context
-import com.example.picchallenge.data.remote.AuthApiService
 import com.example.picchallenge.data.remote.PhotoContestApiService
 import com.example.picchallenge.data.remote.WordPressApiService
-import com.example.picchallenge.data.repository.AuthRepository
 import com.example.picchallenge.data.repository.BlogRepository
 import com.example.picchallenge.data.repository.ContestRepository
 import com.example.picchallenge.data.repository.PhotoRepository
@@ -20,15 +18,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
-
-    @Provides
-    @Singleton
-    fun provideAuthRepository(
-        @ApplicationContext context: Context,
-        authApiService: AuthApiService
-    ): AuthRepository {
-        return AuthRepository(context, authApiService)
-    }
 
     @Provides
     @Singleton
