@@ -8,6 +8,8 @@ import com.example.picchallenge.data.model.PhotoResponse
 import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.data.model.ImageDownloadState
 import com.example.picchallenge.data.repository.ContestRepository
+import com.example.picchallenge.data.repository.PhotoRepository
+import com.example.picchallenge.data.model.VoteResponse
 import com.example.picchallenge.utils.NetworkResult
 import com.example.picchallenge.utils.ImageDownloadManager
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ContestViewModel @Inject constructor(
     private val contestRepository: ContestRepository,
+    private val photoRepository: PhotoRepository,
     private val imageDownloadManager: ImageDownloadManager
 ) : ViewModel() {
 
@@ -37,6 +40,13 @@ class ContestViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // Vote state management
+    private val _voteResult = MutableStateFlow<NetworkResult<VoteResponse>?>(null)
+    val voteResult: StateFlow<NetworkResult<VoteResponse>?> = _voteResult.asStateFlow()
+    
+    private val _votingPhotos = MutableStateFlow<Set<Int>>(emptySet())
+    val votingPhotos: StateFlow<Set<Int>> = _votingPhotos.asStateFlow()
 
     // Image download states for different contests
     private val _imageDownloadStates = mutableMapOf<Int, StateFlow<ImageDownloadState>>()
@@ -114,5 +124,49 @@ class ContestViewModel @Inject constructor(
 
     fun refreshContests() {
         loadContests()
+    }
+
+    /**
+     * Vote for a photo with optimistic updates
+     */
+    fun votePhoto(photoId: Int, email: String? = null) {
+        viewModelScope.launch {
+            try {
+                // Add to voting set for loading state
+                _votingPhotos.value = _votingPhotos.value + photoId
+                
+                // Call the repository to vote
+                val result = photoRepository.votePhoto(photoId, email)
+                _voteResult.value = result
+                
+                // If successful, refresh contest photos to get updated vote counts
+                if (result is NetworkResult.Success) {
+                    // Get current contest ID from contest details
+                    val contestDetails = _contestDetails.value
+                    if (contestDetails is NetworkResult.Success) {
+                        loadContestPhotos(contestDetails.data.id)
+                    }
+                }
+            } catch (e: Exception) {
+                _voteResult.value = NetworkResult.Error("Vote failed: ${e.message ?: "Unknown error"}")
+            } finally {
+                // Remove from voting set
+                _votingPhotos.value = _votingPhotos.value - photoId
+            }
+        }
+    }
+
+    /**
+     * Clear vote result (call this after showing feedback to user)
+     */
+    fun clearVoteResult() {
+        _voteResult.value = null
+    }
+
+    /**
+     * Check if a photo is currently being voted on
+     */
+    fun isVoting(photoId: Int): Boolean {
+        return _votingPhotos.value.contains(photoId)
     }
 }

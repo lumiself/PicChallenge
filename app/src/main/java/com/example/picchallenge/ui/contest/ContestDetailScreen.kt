@@ -25,12 +25,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.picchallenge.data.model.VoteResponse
+import com.example.picchallenge.utils.NetworkResult
 import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.ContestViewModel
 import com.example.picchallenge.utils.HtmlContentParser
-import com.example.picchallenge.utils.NetworkResult
 import kotlinx.coroutines.delay
 
 /**
@@ -88,6 +90,13 @@ fun ContestDetailScreen(
     val contestDetails by contestViewModel.contestDetails.collectAsState()
     val contestPhotosResult by contestViewModel.contestPhotos.collectAsState()
     
+    // Observe vote states
+    val voteResult by contestViewModel.voteResult.collectAsStateWithLifecycle()
+    val votingPhotos by contestViewModel.votingPhotos.collectAsStateWithLifecycle()
+    
+    // Snackbar for vote feedback
+    val snackbarHostState = remember { SnackbarHostState() }
+    
     LaunchedEffect(contestDetails) {
         when (val result = contestDetails) {
             is NetworkResult.Success -> {
@@ -106,6 +115,27 @@ fun ContestDetailScreen(
             }
             is NetworkResult.Error -> {
                 error = result.message
+            }
+            else -> {}
+        }
+    }
+    
+    // Handle vote results with snackbar feedback
+    LaunchedEffect(voteResult) {
+        when (val result = voteResult) {
+            is NetworkResult.Success -> {
+                snackbarHostState.showSnackbar(
+                    message = "Vote recorded successfully! Total votes: ${result.data.newVoteCount}",
+                    duration = SnackbarDuration.Short
+                )
+                contestViewModel.clearVoteResult()
+            }
+            is NetworkResult.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = "Vote failed: ${result.message}",
+                    duration = SnackbarDuration.Long
+                )
+                contestViewModel.clearVoteResult()
             }
             else -> {}
         }
@@ -140,6 +170,21 @@ fun ContestDetailScreen(
                     )
                 )
             }
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { snackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        containerColor = if (snackbarData.visuals.message.contains("failed")) 
+                            MaterialTheme.colorScheme.error 
+                        else 
+                            MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
+                }
+            )
         }
     ) { paddingValues ->
         when {
@@ -168,9 +213,10 @@ fun ContestDetailScreen(
                     contestPhotos = contestPhotos,
                     onViewSubmissions = onViewSubmissions,
                     onVotePhoto = { photo ->
-                        // Handle vote action
+                        contestViewModel.votePhoto(photo.id)
                     },
                     contestViewModel = contestViewModel,
+                    votingPhotos = votingPhotos,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -185,6 +231,7 @@ private fun ContestContent(
     onViewSubmissions: () -> Unit,
     onVotePhoto: (Photo) -> Unit,
     contestViewModel: ContestViewModel,
+    votingPhotos: Set<Int>,
     modifier: Modifier = Modifier
 ) {
     val imageUrls = remember { HtmlContentParser.parseImages(contest.description) }
@@ -222,7 +269,8 @@ private fun ContestContent(
                 contestId = contest.id,
                 contestViewModel = contestViewModel,
                 expandedPhotoIds = expandedPhotoIds,
-                onExpandedPhotoIdsChange = { expandedPhotoIds = it }
+                onExpandedPhotoIdsChange = { expandedPhotoIds = it },
+                votingPhotos = votingPhotos
             )
         } else {
             EmptyContestantsMessage()
@@ -650,7 +698,8 @@ private fun ContestantsList(
     contestId: Int,
     contestViewModel: ContestViewModel,
     expandedPhotoIds: Set<Int>,
-    onExpandedPhotoIdsChange: (Set<Int>) -> Unit
+    onExpandedPhotoIdsChange: (Set<Int>) -> Unit,
+    votingPhotos: Set<Int>
 ) {
     Card(
         modifier = Modifier
@@ -693,7 +742,8 @@ private fun ContestantsList(
                                 expandedPhotoIds + photo.id
                             }
                         )
-                    }
+                    },
+                    isVoting = votingPhotos.contains(photo.id)
                 )
                 if (photo != photos.last()) {
                     HorizontalDivider(
@@ -712,7 +762,8 @@ private fun ContestantItem(
     onVoteClick: () -> Unit,
     contestStatus: String,
     isBioExpanded: Boolean,
-    onBioToggle: () -> Unit
+    onBioToggle: () -> Unit,
+    isVoting: Boolean = false
 ) {
     // State for individual contestant overlay
     var showOverlay by remember { mutableStateOf(false) }
@@ -737,7 +788,7 @@ private fun ContestantItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable(
-                            indication = androidx.compose.foundation.LocalIndication.current,
+                            indication = null,
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                         ) { 
                             println("Image clicked: ${photo.title} - Large URL: ${photo.large}")
@@ -786,15 +837,34 @@ private fun ContestantItem(
             if (contestStatus.equals("active", ignoreCase = true)) {
                 Button(
                     onClick = onVoteClick,
+                    enabled = !isVoting,
                     modifier = Modifier.height(36.dp),
                     shape = RoundedCornerShape(20.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Text(
-                        "Vote",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    if (isVoting) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
+                            )
+                            Text(
+                                "Voting...",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    } else {
+                        Text(
+                            "Vote",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             } else {
                 Surface(
