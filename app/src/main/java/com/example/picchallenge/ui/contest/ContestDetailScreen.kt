@@ -56,40 +56,59 @@ fun ContestDetailScreen(
 ) {
     var contest by remember { mutableStateOf<Contest?>(null) }
     var contestPhotos by remember { mutableStateOf<List<Photo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     
-    LaunchedEffect(contestId) {
-        // Load contest details and photos
-        contestViewModel.loadContestDetails(contestId)
-        contestViewModel.loadContestPhotos(contestId)
-        
-        // Get contest from existing data or load fresh
-        when (val contestsResult = contestViewModel.contests.value) {
-            is NetworkResult.Success -> {
-                contest = contestsResult.data.data.find { it.id == contestId }
-            }
-            else -> {
-                contestViewModel.loadContests()
-            }
-        }
-        
-        // Get contest details if available
-        when (val detailsResult = contestViewModel.contestDetails.value) {
-            is NetworkResult.Success -> {
-                if (detailsResult.data.id == contestId) {
-                    contest = detailsResult.data
-                }
-            }
-            else -> {}
-        }
-        
-        isLoading = false
-    }
+    // Use ViewModel's loading state instead of local state
+    val isLoading by contestViewModel.isLoading.collectAsStateWithLifecycle()
     
     // Observe contest details and photos
     val contestDetails by contestViewModel.contestDetails.collectAsState()
     val contestPhotosResult by contestViewModel.contestPhotos.collectAsState()
+    
+    // Create a more comprehensive loading state that considers both contest details and photos
+    val isDataLoading = remember(contestDetails, contestPhotosResult, isLoading) {
+        isLoading || 
+        contestDetails == null || 
+        contestDetails is NetworkResult.Loading ||
+        contestPhotosResult is NetworkResult.Loading
+    }
+    
+    LaunchedEffect(contestId) {
+        // Only load if we don't have the data already or if contestId changed
+        val currentContestDetails = contestViewModel.contestDetails.value
+        val shouldLoadDetails = currentContestDetails?.let { 
+            it !is NetworkResult.Success || it.data.id != contestId 
+        } ?: true
+        
+        val currentContestPhotos = contestViewModel.contestPhotos.value
+        val shouldLoadPhotos = currentContestPhotos !is NetworkResult.Success || 
+                              (currentContestPhotos is NetworkResult.Success && currentContestPhotos.data.data.isEmpty())
+        
+        if (shouldLoadDetails) {
+            contestViewModel.loadContestDetails(contestId)
+        }
+        
+        if (shouldLoadPhotos) {
+            contestViewModel.loadContestPhotos(contestId)
+        }
+        
+        // Get contest from existing data or load fresh
+        when (val contestsResult = contestViewModel.contests.value) {
+            is NetworkResult.Success -> {
+                val foundContest = contestsResult.data.data.find { it.id == contestId }
+                if (foundContest != null) {
+                    contest = foundContest
+                } else if (shouldLoadDetails) {
+                    contestViewModel.loadContests()
+                }
+            }
+            else -> {
+                if (shouldLoadDetails) {
+                    contestViewModel.loadContests()
+                }
+            }
+        }
+    }
     
     // Observe vote states
     val voteResult by contestViewModel.voteResult.collectAsStateWithLifecycle()
@@ -189,7 +208,7 @@ fun ContestDetailScreen(
         }
     ) { paddingValues ->
         when {
-            isLoading -> {
+            isDataLoading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

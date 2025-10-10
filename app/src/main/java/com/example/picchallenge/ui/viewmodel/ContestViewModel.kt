@@ -101,9 +101,16 @@ class ContestViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _contestDetails.value = NetworkResult.Loading
-            val result = contestRepository.getContestDetails(contestId)
-            _contestDetails.value = result
-            _isLoading.value = false
+            try {
+                val result = contestRepository.getContestDetails(contestId)
+                _contestDetails.value = result
+            } catch (e: Exception) {
+                _contestDetails.value = NetworkResult.Error(
+                    message = "Failed to load contest details: ${e.message ?: "Unknown error"}"
+                )
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
