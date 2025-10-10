@@ -3,6 +3,7 @@ package com.example.picchallenge.ui.blog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.ArrowBack
@@ -86,64 +87,65 @@ fun BlogDetailScreen(
             }
             
             currentPost != null -> {
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .verticalScroll(rememberScrollState())
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = CardWhite
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 2.dp
-                        )
-                    ) {
-                        Column(
+                    item {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp)
+                                .padding(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = CardWhite
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 2.dp
+                            )
                         ) {
-                            // Featured Image (if available) - optimized for fast loading
-                            currentPost.featuredImageUrl?.let { imageUrl ->
-                                com.example.picchallenge.ui.components.EnhancedImage(
-                                    imageUrl = imageUrl,
-                                    contentDescription = "Featured image",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp)
-                                        .padding(bottom = 16.dp),
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp)
+                            ) {
+                                // Featured Image (if available) - optimized for fast loading
+                                currentPost.featuredImageUrl?.let { imageUrl ->
+                                    com.example.picchallenge.ui.components.EnhancedImage(
+                                        imageUrl = imageUrl,
+                                        contentDescription = "Featured image",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .padding(bottom = 16.dp),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                    )
+                                }
+                                
+                                // Title
+                                Text(
+                                    text = currentPost.title,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextGray,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                
+                                // Date
+                                Text(
+                                    text = currentPost.date,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = TextGray.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(bottom = 16.dp)
+                                )
+                                
+                                // Content with enhanced formatting and images
+                                EnhancedArticleContent(
+                                    content = currentPost.content,
+                                    featuredImageUrl = currentPost.featuredImageUrl,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
-                            
-                            // Title
-                            Text(
-                                text = currentPost.title,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = TextGray,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            
-                            // Date
-                            Text(
-                                text = currentPost.date,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = TextGray.copy(alpha = 0.6f),
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            
-                            // Content with enhanced formatting and images
-                            EnhancedArticleContent(
-                                content = currentPost.content,
-                                featuredImageUrl = currentPost.featuredImageUrl,
-                                modifier = Modifier.fillMaxWidth()
-                            )
                         }
                     }
                 }

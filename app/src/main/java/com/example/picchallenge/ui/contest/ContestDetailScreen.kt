@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -240,49 +241,60 @@ private fun ContestContent(
     // Track which photos have expanded bios - hoisted to this level for stability
     var expandedPhotoIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
     
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
     ) {
         // Combined Image Carousel with Contest Details Overlay
         if (imageUrls.isNotEmpty()) {
-            ContestImageWithOverlay(
-                imageUrls = imageUrls,
-                contest = contest,
-                contestText = contestText
-            )
+            item {
+                ContestImageWithOverlay(
+                    imageUrls = imageUrls,
+                    contest = contest,
+                    contestText = contestText
+                )
+            }
         } else {
             // Fallback to header if no images
-            ContestHeader(
-                contest = contest,
-                contestText = contestText
-            )
+            item {
+                ContestHeader(
+                    contest = contest,
+                    contestText = contestText
+                )
+            }
         }
         
         // Contestants List
         if (contestPhotos.isNotEmpty()) {
-            ContestantsList(
-                photos = contestPhotos,
-                onVotePhoto = onVotePhoto,
-                contestStatus = contest.status,
-                contestId = contest.id,
-                contestViewModel = contestViewModel,
-                expandedPhotoIds = expandedPhotoIds,
-                onExpandedPhotoIdsChange = { expandedPhotoIds = it },
-                votingPhotos = votingPhotos
-            )
+            item {
+                ContestantsList(
+                    photos = contestPhotos,
+                    onVotePhoto = onVotePhoto,
+                    contestStatus = contest.status,
+                    contestId = contest.id,
+                    contestViewModel = contestViewModel,
+                    expandedPhotoIds = expandedPhotoIds,
+                    onExpandedPhotoIdsChange = { expandedPhotoIds = it },
+                    votingPhotos = votingPhotos
+                )
+            }
         } else {
-            EmptyContestantsMessage()
+            item {
+                EmptyContestantsMessage()
+            }
         }
         
         // Action Buttons - removed View All Submissions
-        ContestActions(
-            contest = contest,
-            onViewSubmissions = onViewSubmissions
-        )
+        item {
+            ContestActions(
+                contest = contest,
+                onViewSubmissions = onViewSubmissions
+            )
+        }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
@@ -735,6 +747,7 @@ private fun ContestantsList(
                     contestStatus = contestStatus,
                     isBioExpanded = isBioExpanded,
                     onBioToggle = { 
+                        // Only toggle the list expansion, not the overlay
                         onExpandedPhotoIdsChange(
                             if (isBioExpanded) {
                                 expandedPhotoIds - photo.id
@@ -788,12 +801,12 @@ private fun ContestantItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable(
-                            indication = null,
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null
                         ) { 
                             println("Image clicked: ${photo.title} - Large URL: ${photo.large}")
                             showOverlay = true
-                            onBioToggle()
+                            // Don't call onBioToggle() here to prevent double bio display
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -817,7 +830,7 @@ private fun ContestantItem(
                     color = TextGray
                 )
                 Text(
-                    text = "${photo.votes} votes • ${photo.views} views",
+                    text = "${photo.votes} votes",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextGray.copy(alpha = 0.6f)
                 )
@@ -969,23 +982,22 @@ private fun FullScreenBioViewer(
     photo: Photo,
     onDismiss: () -> Unit
 ) {
-    // Main container with background click handler - very light overlay at 30% opacity
+    // Main container with drop shadow instead of semi-transparent overlay
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.3f))
     ) {
         // Background click area (outside the card)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    indication = null
                 ) { onDismiss() }
         )
         
-        // Content area - centered card with bio information
+        // Content area - centered card with bio information and drop shadow
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -993,11 +1005,17 @@ private fun FullScreenBioViewer(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Card container - not clickable to allow background clicks to work
+            // Card container with drop shadow instead of semi-transparent background
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .fillMaxHeight(0.8f),
+                    .fillMaxHeight(0.8f)
+                    .shadow(
+                        elevation = 16.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        ambientColor = Color.Black,
+                        spotColor = Color.Black
+                    ),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = CardWhite)
             ) {
@@ -1033,8 +1051,7 @@ private fun FullScreenBioViewer(
                             text = photo.description,
                             style = MaterialTheme.typography.bodyLarge,
                             color = TextGray.copy(alpha = 0.9f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.verticalScroll(rememberScrollState())
+                            textAlign = TextAlign.Center
                         )
                     } else {
                         Text(
@@ -1050,7 +1067,7 @@ private fun FullScreenBioViewer(
                     // Stats
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
@@ -1061,20 +1078,6 @@ private fun FullScreenBioViewer(
                             )
                             Text(
                                 text = "Votes",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = TextGray.copy(alpha = 0.7f)
-                            )
-                        }
-                        
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "${photo.views}",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryBlue
-                            )
-                            Text(
-                                text = "Views",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = TextGray.copy(alpha = 0.7f)
                             )
