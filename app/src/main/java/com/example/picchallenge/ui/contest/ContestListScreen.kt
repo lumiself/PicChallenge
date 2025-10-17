@@ -35,6 +35,8 @@ import com.example.picchallenge.ui.components.ContestCard
 import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.ContestViewModel
 import com.example.picchallenge.utils.NetworkResult
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 // Helper function to map String status to ContestStatus enum
 fun mapStringToContestStatus(status: String?): ContestStatus {
@@ -54,15 +56,23 @@ fun ContestListScreen(
     contestViewModel: ContestViewModel = hiltViewModel()
 ) {
     val contestsResult by contestViewModel.contests.collectAsState()
-    var isRefreshing by remember { mutableStateOf(false) }
+    val isLoading by contestViewModel.isLoading.collectAsState()
+    
+    // State for debouncing refresh calls
+    var lastRefreshTime by remember { mutableStateOf(0L) }
+    val refreshDebounceMs = 1000L // 1 second debounce
 
     LaunchedEffect(Unit) {
         contestViewModel.loadContests(status = "all")
     }
 
-    val refreshContests = {
-        isRefreshing = true
-        contestViewModel.loadContests(status = "all")
+    // Debounced refresh function
+    val debouncedRefresh = {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastRefreshTime > refreshDebounceMs) {
+            lastRefreshTime = currentTime
+            contestViewModel.loadContests(status = "all", isRefresh = true)
+        }
     }
 
     Scaffold(
@@ -97,11 +107,22 @@ fun ContestListScreen(
         ) {
             when (val result = contestsResult) {
                 is NetworkResult.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    // Show loading only on initial load, not during refresh
+                    if (!isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        // During refresh, show the SwipeRefresh with existing data
+                        SwipeRefreshContestGrid(
+                            contests = emptyList(),
+                            onContestClick = onContestClick,
+                            isRefreshing = true,
+                            onRefresh = debouncedRefresh
+                        )
                     }
                 }
                 is NetworkResult.Success -> {
@@ -109,11 +130,11 @@ fun ContestListScreen(
                     if (contestData.data.isEmpty()) {
                         EmptyState(message = "No contests found")
                     } else {
-                        PullToRefreshContestGrid(
+                        SwipeRefreshContestGrid(
                             contests = contestData.data,
                             onContestClick = onContestClick,
-                            isRefreshing = isRefreshing,
-                            onRefresh = refreshContests
+                            isRefreshing = isLoading,
+                            onRefresh = debouncedRefresh
                         )
                     }
                 }
@@ -129,58 +150,32 @@ fun ContestListScreen(
 }
 
 @Composable
-private fun PullToRefreshContestGrid(
+private fun SwipeRefreshContestGrid(
     contests: List<Contest>,
     onContestClick: (Contest) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        val listState = rememberLazyGridState()
-        
-        // Simple pull-to-refresh using scroll position detection
-        var lastScrollOffset by remember { mutableStateOf(0) }
-        var pullTriggered by remember { mutableStateOf(false) }
-        
-        LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-            val currentOffset = listState.firstVisibleItemScrollOffset
-            val isAtTop = listState.firstVisibleItemIndex == 0 && currentOffset == 0
-            
-            // Detect pull gesture (negative scroll offset or transition to top)
-            if (isAtTop && lastScrollOffset > 0 && !pullTriggered && !isRefreshing) {
-                pullTriggered = true
-                onRefresh()
-            } else if (!isAtTop) {
-                pullTriggered = false
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+    
+    SwipeRefresh(
+        state = swipeRefreshState,
+        onRefresh = onRefresh,
+        modifier = modifier.fillMaxSize()
+    ) {
+        if (contests.isEmpty()) {
+            // Show empty state during initial load or if no data
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-            
-            lastScrollOffset = currentOffset
-        }
-        
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Show refresh indicator at the top when refreshing
-            if (isRefreshing) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .background(SurfaceWhite),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = PrimaryModern,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-            
+        } else {
             LazyVerticalGrid(
-                state = listState,
                 columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(4.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)

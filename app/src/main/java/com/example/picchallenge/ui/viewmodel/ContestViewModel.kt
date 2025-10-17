@@ -78,12 +78,16 @@ class ContestViewModel @Inject constructor(
     fun loadContests(
         page: Int = 1,
         perPage: Int = 20,
-        status: String = "all"
+        status: String = "all",
+        isRefresh: Boolean = false
     ) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                _contests.value = NetworkResult.Loading
+                // Only set to Loading state if it's not a refresh (to keep existing data visible)
+                if (!isRefresh) {
+                    _contests.value = NetworkResult.Loading
+                }
                 val result = contestRepository.getContests(page, perPage, status)
                 _contests.value = result
             } catch (e: Exception) {
