@@ -5,15 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.kapt)
 }
 
-import java.util.Properties
-
-// Load keystore properties
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("keystore.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(keystorePropertiesFile.inputStream())
-}
-
 android {
     namespace = "com.example.picchallenge"
     compileSdk = 36
@@ -29,15 +20,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file(keystoreProperties.getProperty("storeFile", "picchallenge-release.keystore"))
-            storePassword = keystoreProperties.getProperty("storePassword", "")
-            keyAlias = keystoreProperties.getProperty("keyAlias", "picchallenge")
-            keyPassword = keystoreProperties.getProperty("keyPassword", "")
-        }
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -45,7 +27,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            // Signing configuration removed - add new keystore when ready
         }
     }
     compileOptions {
