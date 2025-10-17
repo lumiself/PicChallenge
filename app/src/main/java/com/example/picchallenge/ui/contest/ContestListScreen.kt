@@ -164,28 +164,18 @@ private fun SwipeRefreshContestGrid(
         onRefresh = onRefresh,
         modifier = modifier.fillMaxSize()
     ) {
-        if (contests.isEmpty()) {
-            // Show empty state during initial load or if no data
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                items(contests, key = { it.id }) { contest ->
-                    ContestCard(
-                        contest = contest,
-                        onClick = { onContestClick(contest) }
-                    )
-                }
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            items(contests, key = { it.id }) { contest ->
+                ContestCard(
+                    contest = contest,
+                    onClick = { onContestClick(contest) }
+                )
             }
         }
     }
