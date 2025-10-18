@@ -41,7 +41,7 @@ fun BlogScreen(
                 modifier = Modifier
                     .shadow(elevation = 4.dp)
                     .zIndex(1f),
-                color = SurfaceWhite
+                color = MaterialTheme.colorScheme.surface
             ) {
                 TopAppBar(
                     title = { 
@@ -49,7 +49,7 @@ fun BlogScreen(
                             "News & Updates",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     navigationIcon = {
@@ -57,14 +57,14 @@ fun BlogScreen(
                             Icon(
                                 Icons.Default.ArrowBack, 
                                 contentDescription = "Back",
-                                tint = TextPrimary
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = TextPrimary,
-                        navigationIconContentColor = TextPrimary
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -120,7 +120,7 @@ private fun BlogPostItem(
             .padding(horizontal = 4.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = CardWhite
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
@@ -148,7 +148,7 @@ private fun BlogPostItem(
                 text = formatTitle(post.title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -159,7 +159,7 @@ private fun BlogPostItem(
             Text(
                 text = formatExcerpt(post.excerpt),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextPrimary.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
@@ -175,7 +175,7 @@ private fun BlogPostItem(
                 Text(
                     text = post.date,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextPrimary.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
                 
                             Text(
@@ -230,7 +230,7 @@ private fun ErrorState(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = CardWhite
+                containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 2.dp
@@ -255,7 +255,7 @@ private fun ErrorState(
                     text = "Error loading posts",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -264,7 +264,7 @@ private fun ErrorState(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    color = TextPrimary.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))

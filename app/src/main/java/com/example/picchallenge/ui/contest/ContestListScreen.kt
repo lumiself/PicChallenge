@@ -81,7 +81,7 @@ fun ContestListScreen(
                 modifier = Modifier
                     .shadow(elevation = 4.dp)
                     .zIndex(1f),
-                color = SurfaceWhite
+                color = MaterialTheme.colorScheme.surface
             ) {
                 TopAppBar(
                     title = {
@@ -89,12 +89,12 @@ fun ContestListScreen(
                             "Photo Contests",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = TextPrimary
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -191,7 +191,7 @@ private fun EmptyState(message: String) {
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CardWhite),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
@@ -205,7 +205,7 @@ private fun EmptyState(message: String) {
                     modifier = Modifier.size(64.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = TextGray)
+                Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             }
         }
     }
@@ -221,7 +221,7 @@ private fun ErrorState(message: String?, onRetry: () -> Unit) {
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CardWhite),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
@@ -235,9 +235,9 @@ private fun ErrorState(message: String?, onRetry: () -> Unit) {
                     modifier = Modifier.size(64.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Error loading contests", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextGray)
+                Text("Error loading contests", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(message ?: "Unknown error", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center, color = TextGray.copy(alpha = 0.7f))
+                Text(message ?: "Unknown error", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = onRetry) { Text("Retry") }
             }

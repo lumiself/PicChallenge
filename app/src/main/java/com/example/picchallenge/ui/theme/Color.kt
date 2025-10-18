@@ -25,6 +25,15 @@ val AccentPurple = Color(0xFF8b5cf6)
 val ShadowLight = Color(0x1A000000) // Light black shadow
 val ShadowMedium = Color(0x33000000) // Medium black shadow
 
+// Dark Theme Colors
+val PrimaryDark = Color(0xFF818cf8) // Lighter indigo for dark theme
+val BackgroundDark = Color(0xFF111827) // Very dark gray background
+val SurfaceDark = Color(0xFF1f2937) // Dark gray surfaces
+val TextPrimaryDark = Color(0xFFf9fafb) // Very light gray for primary text
+val TextSecondaryDark = Color(0xFFd1d5db) // Light gray for secondary text
+val CardDark = Color(0xFF374151) // Medium dark gray cards
+val DividerDark = Color(0xFF4b5563) // Dark gray dividers
+
 // Material Theme Colors (kept for compatibility)
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)

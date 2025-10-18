@@ -2367,7 +2367,7 @@ fun ContestDetailScreen(
                 modifier = Modifier
                     .shadow(elevation = 4.dp)
                     .zIndex(1f),
-                color = SurfaceWhite
+                color = MaterialTheme.colorScheme.surface
             ) {
                 TopAppBar(
                     title = { 
@@ -2375,18 +2375,18 @@ fun ContestDetailScreen(
                             contest?.name ?: "Contest Details",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = TextPrimary,
-                        navigationIconContentColor = TextPrimary
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }

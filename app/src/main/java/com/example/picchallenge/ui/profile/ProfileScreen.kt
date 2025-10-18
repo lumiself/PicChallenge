@@ -38,7 +38,7 @@ fun ProfileScreen(
                 modifier = Modifier
                     .shadow(elevation = 4.dp)
                     .zIndex(1f),
-                color = SurfaceWhite
+                color = MaterialTheme.colorScheme.surface
             ) {
                 TopAppBar(
                     title = { 
@@ -46,7 +46,7 @@ fun ProfileScreen(
                             "Join PicChallenge",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     navigationIcon = {
@@ -54,14 +54,14 @@ fun ProfileScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack, 
                                 contentDescription = "Back",
-                                tint = TextPrimary
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = TextPrimary,
-                        navigationIconContentColor = TextPrimary
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -87,7 +87,7 @@ private fun WelcomeCard() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -102,7 +102,7 @@ private fun WelcomeCard() {
             // Profile Icon Placeholder
             Surface(
                 shape = CircleShape,
-                color = PrimaryModern.copy(alpha = 0.1f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 modifier = Modifier.size(64.dp)
             ) {
                 Box(
@@ -111,7 +111,7 @@ private fun WelcomeCard() {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profile",
-                        tint = PrimaryModern,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(32.dp)
                     )
                 }

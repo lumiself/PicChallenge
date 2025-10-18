@@ -45,7 +45,7 @@ fun BlogDetailScreen(
                 modifier = Modifier
                     .shadow(elevation = 4.dp)
                     .zIndex(1f),
-                color = SurfaceWhite
+                color = MaterialTheme.colorScheme.surface
             ) {
                 TopAppBar(
                     title = { 
@@ -53,7 +53,7 @@ fun BlogDetailScreen(
                             "Article",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     navigationIcon = {
@@ -61,14 +61,14 @@ fun BlogDetailScreen(
                             Icon(
                                 Icons.Default.ArrowBack, 
                                 contentDescription = "Back",
-                                tint = TextPrimary
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = TextPrimary,
-                        navigationIconContentColor = TextPrimary
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -98,7 +98,7 @@ fun BlogDetailScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = CardWhite
+                                containerColor = MaterialTheme.colorScheme.surface
                             ),
                             elevation = CardDefaults.cardElevation(
                                 defaultElevation = 2.dp
@@ -127,7 +127,7 @@ fun BlogDetailScreen(
                                     text = currentPost.title,
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextPrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 
@@ -135,7 +135,7 @@ fun BlogDetailScreen(
                                 Text(
                                     text = currentPost.date,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = TextGray.copy(alpha = 0.6f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                     modifier = Modifier.padding(bottom = 16.dp)
                                 )
                                 
@@ -164,7 +164,7 @@ fun BlogDetailScreen(
                             .fillMaxWidth()
                             .padding(32.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = CardWhite
+                            containerColor = MaterialTheme.colorScheme.surface
                         ),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 2.dp
@@ -189,7 +189,7 @@ fun BlogDetailScreen(
                                 text = "Article not found",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = TextGray
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
@@ -198,7 +198,7 @@ fun BlogDetailScreen(
                                 text = "The requested article could not be loaded.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
-                                color = TextGray.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                             
                             Spacer(modifier = Modifier.height(16.dp))
