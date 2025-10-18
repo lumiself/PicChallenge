@@ -127,7 +127,7 @@ fun BlogDetailScreen(
                                     text = currentPost.title,
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextGray,
+                                    color = TextPrimary,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 

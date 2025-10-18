@@ -12,6 +12,8 @@ import com.example.picchallenge.data.repository.PhotoRepository
 import com.example.picchallenge.data.model.VoteResponse
 import com.example.picchallenge.utils.NetworkResult
 import com.example.picchallenge.utils.ImageDownloadManager
+import com.example.picchallenge.data.repository.VoteTrackingRepository
+import com.example.picchallenge.data.repository.VoteEligibilityResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +27,8 @@ import javax.inject.Inject
 class ContestViewModel @Inject constructor(
     private val contestRepository: ContestRepository,
     private val photoRepository: PhotoRepository,
-    private val imageDownloadManager: ImageDownloadManager
+    private val imageDownloadManager: ImageDownloadManager,
+    private val voteTrackingRepository: VoteTrackingRepository
 ) : ViewModel() {
 
     private val _contests = MutableStateFlow<NetworkResult<ContestResponse>>(NetworkResult.Loading)
@@ -47,6 +50,10 @@ class ContestViewModel @Inject constructor(
     
     private val _votingPhotos = MutableStateFlow<Set<Int>>(emptySet())
     val votingPhotos: StateFlow<Set<Int>> = _votingPhotos.asStateFlow()
+
+    // Voting eligibility state
+    private val _voteEligibility = MutableStateFlow<Map<Int, VoteEligibilityResult>>(emptyMap())
+    val voteEligibility: StateFlow<Map<Int, VoteEligibilityResult>> = _voteEligibility.asStateFlow()
 
     // Image download states for different contests
     private val _imageDownloadStates = mutableMapOf<Int, StateFlow<ImageDownloadState>>()
@@ -138,13 +145,49 @@ class ContestViewModel @Inject constructor(
     }
 
     /**
-     * Vote for a photo with optimistic updates
+     * Check voting eligibility for a photo
+     * Simplified implementation: Uses daily voting logic for all contests
      */
-    fun votePhoto(photoId: Int, email: String? = null) {
+    suspend fun checkVotingEligibility(photoId: Int, contestId: Int, voteFrequency: Int): VoteEligibilityResult {
+        // For now, ignore the voteFrequency parameter and use daily voting logic
+        // This ensures consistent 24-hour restrictions regardless of WordPress settings
+        return voteTrackingRepository.canVote(contestId, photoId, VoteTrackingRepository.VOTE_FREQUENCY_DAILY)
+    }
+
+    /**
+     * Update voting eligibility for all photos in current contest
+     * Simplified implementation: Uses daily voting logic for all contests
+     */
+    fun updateVotingEligibilityForContest(contestId: Int, voteFrequency: Int, photos: List<Photo>) {
+        viewModelScope.launch {
+            val eligibilityMap = mutableMapOf<Int, VoteEligibilityResult>()
+            photos.forEach { photo ->
+                // Use daily voting logic regardless of actual vote frequency setting
+                eligibilityMap[photo.id] = checkVotingEligibility(photo.id, contestId, VoteTrackingRepository.VOTE_FREQUENCY_DAILY)
+            }
+            _voteEligibility.value = eligibilityMap
+        }
+    }
+
+    /**
+     * Vote for a photo with eligibility checking and optimistic updates
+     */
+    fun votePhoto(photoId: Int, contestId: Int, voteFrequency: Int, email: String? = null) {
         viewModelScope.launch {
             try {
+                // Check voting eligibility first
+                val eligibility = checkVotingEligibility(photoId, contestId, voteFrequency)
+                
+                if (eligibility is VoteEligibilityResult.NotAllowed) {
+                    _voteResult.value = NetworkResult.Error(eligibility.reason)
+                    return@launch
+                }
+
                 // Add to voting set for loading state
                 _votingPhotos.value = _votingPhotos.value + photoId
+                
+                // Record the vote locally first (optimistic update)
+                voteTrackingRepository.recordVote(photoId, contestId)
                 
                 // Call the repository to vote
                 val result = photoRepository.votePhoto(photoId, email)
@@ -152,11 +195,18 @@ class ContestViewModel @Inject constructor(
                 
                 // If successful, refresh contest photos to get updated vote counts
                 if (result is NetworkResult.Success) {
-                    // Get current contest ID from contest details
-                    val contestDetails = _contestDetails.value
-                    if (contestDetails is NetworkResult.Success) {
-                        loadContestPhotos(contestDetails.data.id)
+                    // Update eligibility for this photo
+                    val newEligibility = checkVotingEligibility(photoId, contestId, voteFrequency)
+                    _voteEligibility.value = _voteEligibility.value.toMutableMap().apply {
+                        this[photoId] = newEligibility
                     }
+                    
+                    // Refresh contest photos
+                    loadContestPhotos(contestId)
+                } else if (result is NetworkResult.Error) {
+                    // If server rejects, remove the local vote record
+                    // This is a rollback mechanism
+                    voteTrackingRepository.clearContestVoteHistory(contestId)
                 }
             } catch (e: Exception) {
                 _voteResult.value = NetworkResult.Error("Vote failed: ${e.message ?: "Unknown error"}")
@@ -179,5 +229,22 @@ class ContestViewModel @Inject constructor(
      */
     fun isVoting(photoId: Int): Boolean {
         return _votingPhotos.value.contains(photoId)
+    }
+
+    /**
+     * Get voting eligibility for a specific photo
+     */
+    fun getVoteEligibility(photoId: Int): VoteEligibilityResult {
+        return _voteEligibility.value[photoId] ?: VoteEligibilityResult.Allowed
+    }
+
+    /**
+     * Clear all vote history (for testing/debugging)
+     */
+    fun clearVoteHistory() {
+        viewModelScope.launch {
+            voteTrackingRepository.clearAllVoteHistory()
+            _voteEligibility.value = emptyMap()
+        }
     }
 }

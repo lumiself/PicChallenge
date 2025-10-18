@@ -8,6 +8,8 @@ import com.example.picchallenge.data.repository.ContestRepository
 import com.example.picchallenge.data.repository.PhotoRepository
 import com.example.picchallenge.data.repository.SettingsRepository
 import com.example.picchallenge.data.repository.UserRepository
+import com.example.picchallenge.data.repository.VoteTrackingRepository
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -63,5 +65,20 @@ object RepositoryModule {
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context {
         return context
+    }
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return Gson()
+    }
+
+    @Provides
+    @Singleton
+    fun provideVoteTrackingRepository(
+        @ApplicationContext context: Context,
+        gson: Gson
+    ): VoteTrackingRepository {
+        return VoteTrackingRepository(context, gson)
     }
 }

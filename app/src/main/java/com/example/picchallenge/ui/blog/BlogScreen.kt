@@ -148,7 +148,7 @@ private fun BlogPostItem(
                 text = formatTitle(post.title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = TextGray,
+                color = TextPrimary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -159,7 +159,7 @@ private fun BlogPostItem(
             Text(
                 text = formatExcerpt(post.excerpt),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextGray.copy(alpha = 0.8f),
+                color = TextPrimary.copy(alpha = 0.8f),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
@@ -175,7 +175,7 @@ private fun BlogPostItem(
                 Text(
                     text = post.date,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextGray.copy(alpha = 0.6f)
+                    color = TextPrimary.copy(alpha = 0.6f)
                 )
                 
                             Text(
@@ -255,7 +255,7 @@ private fun ErrorState(
                     text = "Error loading posts",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = TextGray
+                    color = TextPrimary
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -264,7 +264,7 @@ private fun ErrorState(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    color = TextGray.copy(alpha = 0.7f)
+                    color = TextPrimary.copy(alpha = 0.7f)
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
