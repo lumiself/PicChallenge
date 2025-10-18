@@ -123,7 +123,7 @@ private fun WelcomeCard() {
                 text = "Welcome to PicChallenge",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = TextGray
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -131,7 +131,7 @@ private fun WelcomeCard() {
             Text(
                 text = "Express your true self and let your inner beauty shine.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextGray.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
             
@@ -140,7 +140,7 @@ private fun WelcomeCard() {
             Text(
                 text = "We celebrate genuine self-expression through impactful Challenges that are designed to help you win hearts, not just votes.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextGray.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
         }
@@ -155,7 +155,7 @@ private fun HowToJoinSection() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
@@ -168,7 +168,7 @@ private fun HowToJoinSection() {
                 text = "How to Join",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             
@@ -316,7 +316,7 @@ private fun StepListItem(stepNumber: Int, text: String) {
         ) {
             Text(
                 text = stepNumber.toString(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -327,7 +327,7 @@ private fun StepListItem(stepNumber: Int, text: String) {
             text = text,
             modifier = Modifier.padding(start = 12.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = TextGray.copy(alpha = 0.8f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
         )
     }
 }

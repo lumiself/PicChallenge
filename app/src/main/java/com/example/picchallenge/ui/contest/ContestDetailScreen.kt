@@ -2532,7 +2532,7 @@ private fun ContestHeader(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = CardWhite
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -2566,7 +2566,7 @@ private fun ContestHeader(
                 text = contest.name,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = TextGray
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -2574,7 +2574,7 @@ private fun ContestHeader(
             Text(
                 text = contestText,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextGray.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -2588,12 +2588,12 @@ private fun ContestHeader(
                     Text(
                         text = "Start Date",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextGray.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     Text(
                         text = contest.startDate.take(10),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextGray
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
@@ -2601,12 +2601,12 @@ private fun ContestHeader(
                     Text(
                         text = "End Date",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextGray.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     Text(
                         text = contest.endDate.take(10),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextGray
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -2622,7 +2622,7 @@ private fun ContestStats(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = CardWhite
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -2688,7 +2688,7 @@ private fun StatItem(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = TextGray.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
     }
 }
@@ -2701,7 +2701,7 @@ private fun ContestInfo(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = CardWhite
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -2711,7 +2711,7 @@ private fun ContestInfo(
                 text = "Contest Information",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
@@ -2721,7 +2721,7 @@ private fun ContestInfo(
                        "• Contest mode: ${if (contest.contestMode == 1) "Standard" else "Premium"}\n" +
                        "• Status: ${contest.status.replaceFirstChar { it.uppercase() }}",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextGray.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
         }
     }
@@ -2742,7 +2742,7 @@ private fun ErrorState(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = CardWhite
+                containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 2.dp
@@ -2767,7 +2767,7 @@ private fun ErrorState(
                     text = "Error loading contest",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = TextGray
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -2776,7 +2776,7 @@ private fun ErrorState(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    color = TextGray.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -2945,7 +2945,7 @@ private fun ContestantsList(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -2959,7 +2959,7 @@ private fun ContestantsList(
                     text = "Contestants (${photos.size})",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = TextGray
+                        color = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -2989,7 +2989,7 @@ private fun ContestantsList(
                 if (photo != photos.last()) {
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
-                        color = TextGray.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                     )
                 }
             }
@@ -3056,19 +3056,19 @@ private fun ContestantItem(
                     text = photo.title ?: "Untitled Entry",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
-                    color = TextGray
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "${photo.votes} votes",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextGray.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
                 // Add description/bio preview if available
                 if (!photo.description.isNullOrEmpty()) {
                     Text(
                         text = photo.description.take(50) + if (photo.description.length > 50) "..." else "",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextGray.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -3098,7 +3098,7 @@ private fun ContestantItem(
                             Text(
                                 text = voteEligibility.reason,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = TextGray.copy(alpha = 0.6f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 textAlign = TextAlign.Center,
                                 maxLines = 2,
                                 modifier = Modifier.padding(top = 4.dp)
@@ -3146,13 +3146,13 @@ private fun ContestantItem(
             } else {
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = TextGray.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                 ) {
                     Text(
                         "Ended",
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelMedium,
-                        color = TextGray
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -3165,7 +3165,7 @@ private fun ContestantItem(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -3183,7 +3183,7 @@ private fun ContestantItem(
                     Text(
                         text = photo.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextGray.copy(alpha = 0.9f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
                     )
                 }
             }
@@ -3206,7 +3206,7 @@ private fun EmptyContestantsMessage() {
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier
@@ -3226,7 +3226,7 @@ private fun EmptyContestantsMessage() {
             Text(
                 text = "No submissions yet",
                 style = MaterialTheme.typography.bodyLarge,
-                color = TextGray
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -3281,7 +3281,7 @@ private fun FullScreenBioViewer(
                         spotColor = Color.Black
                     ),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier
@@ -3294,7 +3294,7 @@ private fun FullScreenBioViewer(
                         text = photo.title ?: "Contestant Entry",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TextGray,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
                     
@@ -3314,14 +3314,14 @@ private fun FullScreenBioViewer(
                         Text(
                             text = photo.description,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = TextGray.copy(alpha = 0.9f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                             textAlign = TextAlign.Center
                         )
                     } else {
                         Text(
                             text = "No bio available for this contestant",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = TextGray.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -3343,7 +3343,7 @@ private fun FullScreenBioViewer(
                             Text(
                                 text = "Votes",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = TextGray.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
                     }
