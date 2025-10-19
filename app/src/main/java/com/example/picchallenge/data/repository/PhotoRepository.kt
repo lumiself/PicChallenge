@@ -92,7 +92,7 @@ class PhotoRepository @Inject constructor(
     suspend fun votePhoto(photoId: Int, email: String? = null): NetworkResult<VoteResponse> {
         return withContext(Dispatchers.IO) {
             try {
-                val voteRequest = VoteRequest(email)
+                val voteRequest = VoteRequest(email ?: "")
                 val response = apiService.votePhoto(photoId, voteRequest)
                 if (response.isSuccessful) {
                     response.body()?.let {

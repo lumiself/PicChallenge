@@ -115,35 +115,38 @@ class AuthViewModel @Inject constructor(
             try {
                 val response = wordPressApiService.registerUser(RegisterRequest(username, email, password))
                 
-                if (response.isSuccessful) {
-                    _registerState.value = NetworkResult.Success(Unit)
+                if (response.isSuccessful && response.body() != null) {
+                    val registerResponse = response.body()!!
+                    
                     // After successful registration, automatically login
                     login(username, password)
+                    _registerState.value = NetworkResult.Success(Unit)
                 } else {
-                    val errorMessage = when (response.code()) {
-                        400 -> "Registration failed. Please check your details."
-                        409 -> "Username or email already exists."
-                        else -> "Registration failed. Please try again."
+                    // Try to get detailed error message from response
+                    val errorBody = response.errorBody()?.string()
+                    val errorMessage = if (!errorBody.isNullOrEmpty()) {
+                        try {
+                            // Try to parse error response
+                            "Registration failed: $errorBody"
+                        } catch (e: Exception) {
+                            "Registration failed: ${response.message()}"
+                        }
+                    } else {
+                        when (response.code()) {
+                            400 -> "Registration failed. Please check your details."
+                            409 -> "Username or email already exists."
+                            404 -> "Registration endpoint not found"
+                            500 -> "Server error. Please try again later."
+                            else -> "Registration failed (${response.code()}): ${response.message()}"
+                        }
                     }
                     _registerState.value = NetworkResult.Error(errorMessage)
                 }
             } catch (e: Exception) {
-                _registerState.value = NetworkResult.Error("Network error: ${e.message}")
+                _registerState.value = NetworkResult.Error("Network error: ${e.message ?: "Unknown error"}")
             } finally {
                 _isLoading.value = false
             }
-        }
-    }
-
-    /**
-     * Logout user and clear token
-     */
-    fun logout() {
-        viewModelScope.launch {
-            tokenManager.clearToken()
-            _authState.value = AuthState.Unauthenticated
-            _loginState.value = NetworkResult.Loading
-            _registerState.value = NetworkResult.Loading
         }
     }
 

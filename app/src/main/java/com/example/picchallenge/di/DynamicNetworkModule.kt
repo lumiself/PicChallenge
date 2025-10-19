@@ -1,6 +1,7 @@
 package com.example.picchallenge.di
 
 import com.example.picchallenge.data.remote.PhotoContestApiService
+import com.example.picchallenge.data.remote.VotingApiService
 import com.example.picchallenge.data.remote.WordPressApiService
 import com.example.picchallenge.data.repository.SettingsRepository
 import dagger.Module
@@ -50,6 +51,28 @@ object DynamicNetworkModule {
     ): PhotoContestApiService {
         val retrofit = provideDynamicRetrofit(okHttpClient, settingsRepository)
         return retrofit.create(PhotoContestApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVotingApiService(
+        okHttpClient: OkHttpClient,
+        settingsRepository: SettingsRepository
+    ): VotingApiService {
+        val baseUrl = runBlocking {
+            val mainUrl = settingsRepository.baseUrl.first()
+            // Use the main WordPress API base URL for voting endpoints
+            val cleanUrl = mainUrl.removeSuffix("/").removeSuffix("wp-json").removeSuffix("/")
+            "$cleanUrl/wp-json/"
+        }
+        
+        val retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            
+        return retrofit.create(VotingApiService::class.java)
     }
 
 }

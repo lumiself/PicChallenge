@@ -9,6 +9,7 @@ import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.data.model.ImageDownloadState
 import com.example.picchallenge.data.repository.ContestRepository
 import com.example.picchallenge.data.repository.PhotoRepository
+import com.example.picchallenge.data.repository.VotingRepository
 import com.example.picchallenge.data.model.VoteResponse
 import com.example.picchallenge.utils.NetworkResult
 import com.example.picchallenge.utils.ImageDownloadManager
@@ -28,6 +29,7 @@ import javax.inject.Inject
 class ContestViewModel @Inject constructor(
     private val contestRepository: ContestRepository,
     private val photoRepository: PhotoRepository,
+    private val votingRepository: VotingRepository,
     private val imageDownloadManager: ImageDownloadManager,
     private val voteTrackingRepository: VoteTrackingRepository,
     private val tokenManager: TokenManager
@@ -173,56 +175,38 @@ class ContestViewModel @Inject constructor(
 
     /**
      * Vote for a photo with authentication checking and eligibility validation
+     * Uses WordPress API with JWT authentication
      */
     fun votePhoto(photoId: Int, contestId: Int, voteFrequency: Int, email: String? = null) {
         viewModelScope.launch {
             try {
-                // Check if user is authenticated first
-                if (!tokenManager.isAuthenticated()) {
-                    _voteResult.value = NetworkResult.Error("Please login to vote")
-                    return@launch
-                }
-
-                // Check voting eligibility
-                val eligibility = checkVotingEligibility(photoId, contestId, voteFrequency)
-                
-                if (eligibility is VoteEligibilityResult.NotAllowed) {
-                    _voteResult.value = NetworkResult.Error(eligibility.reason)
-                    return@launch
-                }
-
                 // Add to voting set for loading state
                 _votingPhotos.value = _votingPhotos.value + photoId
                 
-                // Record the vote locally first (optimistic update)
-                voteTrackingRepository.recordVote(photoId, contestId)
-                
-                // Get authentication token for secure voting
-                val authToken = tokenManager.getAuthHeader()
-                
-                // Call the repository to vote with authentication
-                val result = if (authToken != null) {
-                    photoRepository.votePhotoWithAuth(photoId, authToken)
-                } else {
-                    NetworkResult.Error("Authentication required")
-                }
-                
-                _voteResult.value = result
-                
-                // If successful, refresh contest photos to get updated vote counts
-                if (result is NetworkResult.Success) {
-                    // Update eligibility for this photo
-                    val newEligibility = checkVotingEligibility(photoId, contestId, voteFrequency)
-                    _voteEligibility.value = _voteEligibility.value.toMutableMap().apply {
-                        this[photoId] = newEligibility
+                // Use the new VotingRepository for real WordPress API voting
+                votingRepository.submitVote(photoId, contestId).fold(
+                    onSuccess = { voteResponse ->
+                        _voteResult.value = NetworkResult.Success(voteResponse)
+                        
+                        // Update eligibility for this photo using WordPress API
+                        votingRepository.checkVotingEligibility(contestId).fold(
+                            onSuccess = { newEligibility ->
+                                _voteEligibility.value = _voteEligibility.value.toMutableMap().apply {
+                                    this[photoId] = VoteEligibilityResult.NotAllowed(newEligibility.message)
+                                }
+                            },
+                            onFailure = {
+                                // Keep existing eligibility if check fails
+                            }
+                        )
+                        
+                        // Refresh contest photos to get updated vote counts
+                        loadContestPhotos(contestId)
+                    },
+                    onFailure = { error ->
+                        _voteResult.value = NetworkResult.Error(error.message ?: "Vote submission failed")
                     }
-                    
-                    // Refresh contest photos
-                    loadContestPhotos(contestId)
-                } else if (result is NetworkResult.Error) {
-                    // If server rejects, remove the local vote record
-                    voteTrackingRepository.clearContestVoteHistory(contestId)
-                }
+                )
             } catch (e: Exception) {
                 _voteResult.value = NetworkResult.Error("Vote failed: ${e.message ?: "Unknown error"}")
             } finally {

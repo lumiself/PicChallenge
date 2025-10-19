@@ -2,6 +2,7 @@ package com.example.picchallenge.di
 
 import android.content.Context
 import com.example.picchallenge.data.remote.PhotoContestApiService
+import com.example.picchallenge.data.remote.VotingApiService
 import com.example.picchallenge.data.remote.WordPressApiService
 import com.example.picchallenge.data.repository.BlogRepository
 import com.example.picchallenge.data.repository.ContestRepository
@@ -9,6 +10,8 @@ import com.example.picchallenge.data.repository.PhotoRepository
 import com.example.picchallenge.data.repository.SettingsRepository
 import com.example.picchallenge.data.repository.UserRepository
 import com.example.picchallenge.data.repository.VoteTrackingRepository
+import com.example.picchallenge.data.repository.VotingRepository
+import com.example.picchallenge.utils.TokenManager
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -20,14 +23,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
-
-    @Provides
-    @Singleton
-    fun provideContestRepository(
-        apiService: PhotoContestApiService
-    ): ContestRepository {
-        return ContestRepository(apiService)
-    }
 
     @Provides
     @Singleton
@@ -63,14 +58,19 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideContext(@ApplicationContext context: Context): Context {
-        return context
+    fun provideContestRepository(
+        apiService: PhotoContestApiService
+    ): ContestRepository {
+        return ContestRepository(apiService)
     }
 
     @Provides
     @Singleton
-    fun provideGson(): Gson {
-        return Gson()
+    fun provideVotingRepository(
+        votingApiService: VotingApiService,
+        tokenManager: TokenManager
+    ): VotingRepository {
+        return VotingRepository(votingApiService, tokenManager)
     }
 
     @Provides
@@ -80,5 +80,17 @@ object RepositoryModule {
         gson: Gson
     ): VoteTrackingRepository {
         return VoteTrackingRepository(context, gson)
+    }
+
+    @Provides
+    @Singleton
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
+    }
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return Gson()
     }
 }

@@ -27,15 +27,7 @@ data class PhotoResponse(
     @SerializedName("pages") val pages: Int
 )
 
-data class VoteRequest(
-    @SerializedName("email") val email: String? = null
-)
-
-data class VoteResponse(
-    @SerializedName("success") val success: Boolean,
-    @SerializedName("message") val message: String,
-    @SerializedName("new_vote_count") val newVoteCount: Int
-)
+// Vote models are now defined in Voting.kt
 
 data class RatingRequest(
     @SerializedName("rating") val rating: Int
