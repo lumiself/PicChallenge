@@ -2231,6 +2231,8 @@ import com.example.picchallenge.data.model.Contest
 import com.example.picchallenge.data.model.Photo
 import com.example.picchallenge.ui.theme.*
 import com.example.picchallenge.ui.viewmodel.ContestViewModel
+import com.example.picchallenge.ui.viewmodel.AuthViewModel
+import com.example.picchallenge.ui.viewmodel.AuthState
 import com.example.picchallenge.utils.HtmlContentParser
 import com.example.picchallenge.data.repository.VoteEligibilityResult
 import kotlinx.coroutines.delay
@@ -2251,7 +2253,9 @@ fun ContestDetailScreen(
     contestId: Int,
     onNavigateBack: () -> Unit,
     onViewSubmissions: () -> Unit,
-    contestViewModel: ContestViewModel = hiltViewModel()
+    onNavigateToLogin: () -> Unit,
+    contestViewModel: ContestViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     var contest by remember { mutableStateOf<Contest?>(null) }
     var contestPhotos by remember { mutableStateOf<List<Photo>>(emptyList()) }
@@ -2351,10 +2355,18 @@ fun ContestDetailScreen(
                 contestViewModel.clearVoteResult()
             }
             is NetworkResult.Error -> {
+                val message = result.message
                 snackbarHostState.showSnackbar(
-                    message = "Vote failed: ${result.message}",
+                    message = message,
                     duration = SnackbarDuration.Long
                 )
+                
+                // If authentication is required, navigate to login
+                if (message.contains("login", ignoreCase = true) || 
+                    message.contains("authentication", ignoreCase = true)) {
+                    onNavigateToLogin()
+                }
+                
                 contestViewModel.clearVoteResult()
             }
             else -> {}
@@ -2434,7 +2446,13 @@ fun ContestDetailScreen(
                     onViewSubmissions = onViewSubmissions,
                     onVotePhoto = { photo ->
                         contest?.let { currentContest ->
-                            contestViewModel.votePhoto(photo.id, currentContest.id, currentContest.voteFrequency)
+                            // Check authentication first
+                            if (authViewModel.authState.value is AuthState.Authenticated) {
+                                contestViewModel.votePhoto(photo.id, currentContest.id, currentContest.voteFrequency)
+                            } else {
+                                // Navigate to login if not authenticated
+                                onNavigateToLogin()
+                            }
                         }
                     },
                     contestViewModel = contestViewModel,

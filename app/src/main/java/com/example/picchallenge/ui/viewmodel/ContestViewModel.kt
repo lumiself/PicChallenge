@@ -14,6 +14,7 @@ import com.example.picchallenge.utils.NetworkResult
 import com.example.picchallenge.utils.ImageDownloadManager
 import com.example.picchallenge.data.repository.VoteTrackingRepository
 import com.example.picchallenge.data.repository.VoteEligibilityResult
+import com.example.picchallenge.utils.TokenManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +29,8 @@ class ContestViewModel @Inject constructor(
     private val contestRepository: ContestRepository,
     private val photoRepository: PhotoRepository,
     private val imageDownloadManager: ImageDownloadManager,
-    private val voteTrackingRepository: VoteTrackingRepository
+    private val voteTrackingRepository: VoteTrackingRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _contests = MutableStateFlow<NetworkResult<ContestResponse>>(NetworkResult.Loading)
@@ -170,12 +172,18 @@ class ContestViewModel @Inject constructor(
     }
 
     /**
-     * Vote for a photo with eligibility checking and optimistic updates
+     * Vote for a photo with authentication checking and eligibility validation
      */
     fun votePhoto(photoId: Int, contestId: Int, voteFrequency: Int, email: String? = null) {
         viewModelScope.launch {
             try {
-                // Check voting eligibility first
+                // Check if user is authenticated first
+                if (!tokenManager.isAuthenticated()) {
+                    _voteResult.value = NetworkResult.Error("Please login to vote")
+                    return@launch
+                }
+
+                // Check voting eligibility
                 val eligibility = checkVotingEligibility(photoId, contestId, voteFrequency)
                 
                 if (eligibility is VoteEligibilityResult.NotAllowed) {
@@ -189,8 +197,16 @@ class ContestViewModel @Inject constructor(
                 // Record the vote locally first (optimistic update)
                 voteTrackingRepository.recordVote(photoId, contestId)
                 
-                // Call the repository to vote
-                val result = photoRepository.votePhoto(photoId, email)
+                // Get authentication token for secure voting
+                val authToken = tokenManager.getAuthHeader()
+                
+                // Call the repository to vote with authentication
+                val result = if (authToken != null) {
+                    photoRepository.votePhotoWithAuth(photoId, authToken)
+                } else {
+                    NetworkResult.Error("Authentication required")
+                }
+                
                 _voteResult.value = result
                 
                 // If successful, refresh contest photos to get updated vote counts
@@ -205,7 +221,6 @@ class ContestViewModel @Inject constructor(
                     loadContestPhotos(contestId)
                 } else if (result is NetworkResult.Error) {
                     // If server rejects, remove the local vote record
-                    // This is a rollback mechanism
                     voteTrackingRepository.clearContestVoteHistory(contestId)
                 }
             } catch (e: Exception) {

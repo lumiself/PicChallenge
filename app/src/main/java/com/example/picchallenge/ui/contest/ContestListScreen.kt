@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -52,7 +52,7 @@ fun mapStringToContestStatus(status: String?): ContestStatus {
 @Composable
 fun ContestListScreen(
     onContestClick: (Contest) -> Unit,
-    onProfileClick: () -> Unit,
+    onInfoClick: () -> Unit,
     contestViewModel: ContestViewModel = hiltViewModel()
 ) {
     val contestsResult by contestViewModel.contests.collectAsState()
@@ -91,6 +91,15 @@ fun ContestListScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                    },
+                    actions = {
+                        IconButton(onClick = onInfoClick) {
+                            Icon(
+                                Icons.Default.Info,
+                                contentDescription = "Information",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,

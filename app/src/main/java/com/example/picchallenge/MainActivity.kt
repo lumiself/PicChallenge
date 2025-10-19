@@ -13,10 +13,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.picchallenge.ui.auth.LoginScreen
+import com.example.picchallenge.ui.auth.RegisterScreen
 import com.example.picchallenge.ui.blog.BlogScreen
 import com.example.picchallenge.ui.blog.BlogDetailScreen
 import com.example.picchallenge.ui.contest.ContestListScreen
 import com.example.picchallenge.ui.contest.ContestDetailScreen
+import com.example.picchallenge.ui.info.InfoScreen
 import com.example.picchallenge.ui.profile.ProfileScreen
 import com.example.picchallenge.ui.submissions.MySubmissionsScreen
 import com.example.picchallenge.ui.navigation.BottomNavItem
@@ -69,8 +72,8 @@ fun MainScreenWithBottomNavigation() {
                     onContestClick = { contest ->
                         navController.navigate("contest/${contest.id}")
                     },
-                    onProfileClick = {
-                        navController.navigate("profile")
+                    onInfoClick = {
+                        navController.navigate("info")
                     }
                 )
             }
@@ -105,6 +108,9 @@ fun MainScreenWithBottomNavigation() {
                     onNavigateBack = { navController.popBackStack() },
                     onViewSubmissions = {
                         navController.navigate("submissions")
+                    },
+                    onNavigateToLogin = {
+                        navController.navigate("login")
                     }
                 )
             }
@@ -122,6 +128,40 @@ fun MainScreenWithBottomNavigation() {
                 val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
                 BlogDetailScreen(
                     postId = postId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            
+            // Authentication screens
+            composable("login") {
+                LoginScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToRegister = {
+                        navController.navigate("register")
+                    },
+                    onLoginSuccess = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable("register") {
+                RegisterScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToLogin = {
+                        navController.navigate("login") {
+                            popUpTo("register") { inclusive = true }
+                        }
+                    },
+                    onRegisterSuccess = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            // Information screen
+            composable("info") {
+                InfoScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
