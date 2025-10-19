@@ -150,11 +150,38 @@ class ContestViewModel @Inject constructor(
 
     /**
      * Check voting eligibility for a photo
-     * Simplified implementation: Uses daily voting logic for all contests
+     * Enhanced implementation: Uses JWT API for authentication and voting eligibility
      */
     suspend fun checkVotingEligibility(photoId: Int, contestId: Int, voteFrequency: Int): VoteEligibilityResult {
-        // For now, ignore the voteFrequency parameter and use daily voting logic
-        // This ensures consistent 24-hour restrictions regardless of WordPress settings
+        // First check if user is authenticated using JWT
+        if (!tokenManager.isAuthenticated()) {
+            return VoteEligibilityResult.NotAllowed("Please login to vote")
+        }
+
+        // Use the new JWT canUserVote endpoint for proper eligibility checking
+        try {
+            val token = tokenManager.getAuthHeader()
+            if (token != null) {
+                val response = votingRepository.checkVotingEligibility(contestId)
+                response.fold(
+                    onSuccess = { eligibility ->
+                        return if (eligibility.canVote) {
+                            VoteEligibilityResult.Allowed
+                        } else {
+                            VoteEligibilityResult.NotAllowed(eligibility.message)
+                        }
+                    },
+                    onFailure = { error ->
+                        // Fallback to local tracking if API check fails
+                        return voteTrackingRepository.canVote(contestId, photoId, VoteTrackingRepository.VOTE_FREQUENCY_DAILY)
+                    }
+                )
+            }
+        } catch (e: Exception) {
+            // Fallback to local tracking if JWT check fails
+        }
+
+        // Fallback to local tracking for non-authenticated users or API failures
         return voteTrackingRepository.canVote(contestId, photoId, VoteTrackingRepository.VOTE_FREQUENCY_DAILY)
     }
 

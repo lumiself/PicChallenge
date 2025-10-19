@@ -133,6 +133,33 @@ class AuthViewModel @Inject constructor(
     fun resetRegisterState() {
         _registerState.value = NetworkResult.Loading
     }
+
+    /**
+     * Check if user can vote in a specific contest
+     * Requires JWT authentication
+     */
+    suspend fun canUserVote(contestId: Int): NetworkResult<CanVoteResponse> {
+        return try {
+            val token = tokenManager.getAuthHeader()
+                ?: return NetworkResult.Error("User not authenticated")
+
+            val response = jwtAuthApiService.canUserVote("Bearer $token", contestId)
+            
+            if (response.isSuccessful && response.body() != null) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                val errorMessage = when (response.code()) {
+                    401 -> "Authentication required"
+                    403 -> "Access denied"
+                    404 -> "Contest not found"
+                    else -> "Failed to check voting eligibility: ${response.message()}"
+                }
+                NetworkResult.Error(errorMessage)
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error("Network error: ${e.message}")
+        }
+    }
 }
 
 sealed class AuthState {

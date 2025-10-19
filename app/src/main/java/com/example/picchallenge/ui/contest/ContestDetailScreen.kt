@@ -2446,12 +2446,16 @@ fun ContestDetailScreen(
                     onViewSubmissions = onViewSubmissions,
                     onVotePhoto = { photo ->
                         contest?.let { currentContest ->
-                            // Check authentication first
-                            if (authViewModel.authState.value is AuthState.Authenticated) {
-                                contestViewModel.votePhoto(photo.id, currentContest.id, currentContest.voteFrequency)
-                            } else {
-                                // Navigate to login if not authenticated
-                                onNavigateToLogin()
+                            // Check authentication and voting eligibility
+                            when (authViewModel.authState.value) {
+                                is AuthState.Authenticated -> {
+                                    // User is authenticated, proceed with voting
+                                    contestViewModel.votePhoto(photo.id, currentContest.id, currentContest.voteFrequency)
+                                }
+                                is AuthState.Unauthenticated -> {
+                                    // Navigate to login if not authenticated
+                                    onNavigateToLogin()
+                                }
                             }
                         }
                     },
