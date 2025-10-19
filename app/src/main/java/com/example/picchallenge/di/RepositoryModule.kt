@@ -1,6 +1,7 @@
 package com.example.picchallenge.di
 
 import android.content.Context
+import com.example.picchallenge.data.remote.JWTAuthApiService
 import com.example.picchallenge.data.remote.PhotoContestApiService
 import com.example.picchallenge.data.remote.VotingApiService
 import com.example.picchallenge.data.remote.WordPressApiService
