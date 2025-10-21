@@ -57,7 +57,7 @@ class VotingRepository @Inject constructor(
 
     /**
      * Submit a vote for a specific photo
-     * Automatically checks eligibility and handles authentication
+     * Bypasses WordPress validation and only uses 24-hour restriction
      */
     suspend fun submitVote(photoId: Int, contestId: Int): Result<VoteResponse> {
         return withContext(Dispatchers.IO) {
@@ -69,13 +69,10 @@ class VotingRepository @Inject constructor(
                 val userEmail = tokenManager.getUserEmail()
                     ?: throw Exception("User email not found")
 
-                // Check eligibility first
-                val eligibility = checkVotingEligibility(contestId).getOrThrow()
-                if (!eligibility.canVote) {
-                    throw Exception(eligibility.message)
-                }
+                // Skip WordPress eligibility check - only use 24-hour restriction
+                // The 24-hour validation is handled by VoteTrackingRepository in ContestViewModel
 
-                // Submit vote
+                // Submit vote directly without server-side eligibility validation
                 val voteRequest = VoteRequest(email = userEmail)
                 val response = votingApiService.voteForPhoto(token, photoId, voteRequest)
                 
@@ -88,7 +85,7 @@ class VotingRepository @Inject constructor(
                         401 -> "Authentication failed. Please login again."
                         403 -> "You are not allowed to vote for this photo."
                         404 -> "Photo not found."
-                        409 -> "You have already voted for this photo."
+                        // Remove 409 conflict handling since we're bypassing WordPress validation
                         else -> "Failed to submit vote: ${response.message()}"
                     }
                     Result.failure(Exception(errorMessage))
@@ -238,21 +235,16 @@ class VotingRepository @Inject constructor(
 
     /**
      * Validate vote submission before sending to API
+     * Bypasses per-photo validation to allow voting for same photo after 24 hours
      */
     fun validateVoteSubmission(
         photoId: Int,
         contestId: Int,
         existingVotes: List<VoteHistory>
     ): VoteValidationResult {
-        return when {
-            // Check if user already voted for this photo
-            existingVotes.any { it.photoId == photoId } -> {
-                VoteValidationResult.Invalid("You have already voted for this photo")
-            }
-            
-            // Additional validation rules can be added here
-            else -> VoteValidationResult.Valid
-        }
+        // Remove per-photo validation since we want to allow voting for same photo after 24 hours
+        // The 24-hour restriction is handled by VoteTrackingRepository
+        return VoteValidationResult.Valid
     }
 }
 
