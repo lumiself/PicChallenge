@@ -50,9 +50,9 @@ class BlogRepository @Inject constructor(
                 }
             } catch (e: Exception) {
                 val errorMessage = when (e) {
-                    is java.net.UnknownHostException -> "Cannot connect to server. Check your URL and internet connection."
+                    is java.net.UnknownHostException -> "Cannot connect to server. Check your internet connection."
                     is java.net.SocketTimeoutException -> "Connection timeout. Server may be down or slow."
-                    is java.net.ConnectException -> "Connection refused. Check if server is running."
+                    is java.net.ConnectException -> "Connection refused. Server may be unavailable."
                     else -> "Network error: ${e.message ?: "Unknown error"}"
                 }
                 NetworkResult.Error(errorMessage)
@@ -89,9 +89,9 @@ class BlogRepository @Inject constructor(
                 }
             } catch (e: Exception) {
                 val errorMessage = when (e) {
-                    is java.net.UnknownHostException -> "Cannot connect to server. Check your URL and internet connection."
+                    is java.net.UnknownHostException -> "Cannot connect to server. Check your internet connection."
                     is java.net.SocketTimeoutException -> "Connection timeout. Server may be down or slow."
-                    is java.net.ConnectException -> "Connection refused. Check if server is running."
+                    is java.net.ConnectException -> "Connection refused. Server may be unavailable."
                     else -> "Network error: ${e.message ?: "Unknown error"}"
                 }
                 NetworkResult.Error(errorMessage)
