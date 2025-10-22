@@ -30,10 +30,10 @@ sealed class BottomNavItem(
         icon = Icons.Default.Article
     )
     
-    object Join : BottomNavItem(
-        route = "join",
-        title = "Join",
-        icon = Icons.Default.PersonAdd
+    object Login : BottomNavItem(
+        route = "login",
+        title = "Login to start voting",
+        icon = Icons.Default.Login
     )
 }
 
@@ -45,7 +45,7 @@ fun BottomNavigationBar(
     val items = listOf(
         BottomNavItem.Contests,
         BottomNavItem.News,
-        BottomNavItem.Join
+        BottomNavItem.Login
     )
     
     Surface(

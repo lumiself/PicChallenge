@@ -183,7 +183,7 @@ private fun WelcomeSection() {
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Join PicChallenge",
+                text = "Register to start voting",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

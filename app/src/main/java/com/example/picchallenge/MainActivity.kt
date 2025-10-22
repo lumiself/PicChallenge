@@ -91,11 +91,20 @@ fun MainScreenWithBottomNavigation() {
                 )
             }
             
-            // Join/Profile Tab
-            composable(BottomNavItem.Join.route) {
-                ProfileScreen(
+            // Login Tab
+            composable(BottomNavItem.Login.route) {
+                LoginScreen(
                     onNavigateBack = {
                         navController.popBackStack()
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate("register")
+                    },
+                    onLoginSuccess = {
+                        // After successful login, navigate back to contests
+                        navController.navigate("contests") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 )
             }

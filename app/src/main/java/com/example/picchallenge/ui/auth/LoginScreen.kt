@@ -62,7 +62,7 @@ fun LoginScreen(
                 TopAppBar(
                     title = { 
                         Text(
-                            "Login to Vote",
+                            "Login to start voting",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
