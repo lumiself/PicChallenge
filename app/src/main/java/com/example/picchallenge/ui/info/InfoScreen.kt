@@ -145,16 +145,16 @@ private fun ContestRulesSection() {
             // Rules content
             RuleItem(
                 number = "1",
-                title = "Eligibility",
-                description = "All participants must be 18 years or older. Employees and immediate family members of contest organizers are not eligible to participate."
+                title = "App Purpose",
+                description = "PicChallenge is a publishing platform where all content is created and published by lumiself Studio. Users can browse contests, view photos, and vote on their favorite entries."
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
             RuleItem(
                 number = "2",
-                title = "Submission Guidelines",
-                description = "Photos must be original work taken by the participant. Each contest has specific themes and requirements that must be followed."
+                title = "Content Source",
+                description = "All photos and contest content are professionally created and curated by lumiself Studio. No user-generated content is collected or published through this app."
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -169,8 +169,8 @@ private fun ContestRulesSection() {
             
             RuleItem(
                 number = "4",
-                title = "Prizes",
-                description = "Winners will be announced after the contest ends. Prizes must be claimed within 30 days of announcement. Cash prizes are non-transferable."
+                title = "Contest Participation",
+                description = "Contests are open for viewing and voting by all app users. Winners are determined by community votes and announced after the contest ends."
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -178,7 +178,7 @@ private fun ContestRulesSection() {
             RuleItem(
                 number = "5",
                 title = "Content Rights",
-                description = "By submitting photos, participants grant PicChallenge the right to use, display, and promote the content. Participants retain ownership of their photos."
+                description = "All content is owned by lumiself Studio and is displayed for viewing and voting purposes only. Content may not be downloaded or redistributed without permission."
             )
         }
     }
@@ -291,10 +291,10 @@ private fun PrivacyPolicySection(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "• Email address for account creation and login\n" +
-                       "• Voting history to prevent duplicate votes\n" +
-                       "• Device information for security purposes\n" +
-                       "• Contest participation data",
+                text = "• No personal information is collected\n" +
+                       "• Anonymous voting history to prevent duplicate votes\n" +
+                       "• Basic app usage analytics for performance\n" +
+                       "• No user-generated content is accepted",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )

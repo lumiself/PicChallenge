@@ -24,9 +24,6 @@ fun PicChallengeNavigation(
             ContestListScreen(
                 onContestClick = { contest ->
                     navController.navigate("contest/${contest.id}")
-                },
-                onInfoClick = {
-                    navController.navigate("info")
                 }
             )
         }

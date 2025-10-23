@@ -62,7 +62,7 @@ fun LoginScreen(
                 TopAppBar(
                     title = { 
                         Text(
-                            "Login to start voting",
+                            "Login to Vote",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -164,7 +164,7 @@ private fun WelcomeSection() {
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Login to participate in our exciting photo contests and cast your vote for your favorite contestants.",
+                text = "Login to browse professional photo contests and cast your vote for your favorite entries.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center

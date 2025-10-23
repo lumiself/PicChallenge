@@ -192,7 +192,7 @@ private fun WelcomeSection() {
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Create an account to participate in our exciting photo contests and cast your vote for your favorite contestants.",
+                text = "Create an account to browse professional photo contests and cast your vote for your favorite entries.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center

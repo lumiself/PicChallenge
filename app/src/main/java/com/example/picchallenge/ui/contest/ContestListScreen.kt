@@ -52,7 +52,6 @@ fun mapStringToContestStatus(status: String?): ContestStatus {
 @Composable
 fun ContestListScreen(
     onContestClick: (Contest) -> Unit,
-    onInfoClick: () -> Unit,
     contestViewModel: ContestViewModel = hiltViewModel()
 ) {
     val contestsResult by contestViewModel.contests.collectAsState()
@@ -91,15 +90,6 @@ fun ContestListScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                    },
-                    actions = {
-                        IconButton(onClick = onInfoClick) {
-                            Icon(
-                                Icons.Default.Info,
-                                contentDescription = "Information",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,

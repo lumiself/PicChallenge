@@ -71,9 +71,6 @@ fun MainScreenWithBottomNavigation() {
                 ContestListScreen(
                     onContestClick = { contest ->
                         navController.navigate("contest/${contest.id}")
-                    },
-                    onInfoClick = {
-                        navController.navigate("info")
                     }
                 )
             }
@@ -87,6 +84,18 @@ fun MainScreenWithBottomNavigation() {
                     onPostClick = { postId ->
                         // Navigate to blog detail screen
                         navController.navigate("blog/$postId")
+                    }
+                )
+            }
+            
+            // Info Tab
+            composable(BottomNavItem.Info.route) {
+                InfoScreen(
+                    onNavigateBack = {
+                        // When pressing back from info, go to contests
+                        navController.navigate("contests") {
+                            popUpTo("contests") { inclusive = true }
+                        }
                     }
                 )
             }

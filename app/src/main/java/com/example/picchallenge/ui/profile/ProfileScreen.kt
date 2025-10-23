@@ -187,7 +187,7 @@ private fun HowToJoinSection() {
             // Step 3
             StepListItem(
                 stepNumber = 3,
-                text = "Submit your photos and complete your registration. Your entry will go live shortly!"
+                text = "Complete your registration and get access to view contests and vote on professional photography content."
             )
             
             // Step 4
