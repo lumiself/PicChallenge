@@ -39,7 +39,8 @@ object ContentImageProcessor {
     }
     
     /**
-     * Processes HTML content to preserve structure while handling images
+     * Processes HTML content to preserve original order while handling images
+     * This version processes content sequentially without splitting or reordering
      */
     fun processContentWithImages(htmlContent: String): List<ContentElement> {
         val elements = mutableListOf<ContentElement>()
@@ -48,79 +49,55 @@ object ContentImageProcessor {
         println("DEBUG: Processing content with length: ${htmlContent.length}")
         println("DEBUG: Content preview: ${htmlContent.take(200)}")
         
-        // Extract all images first to see what we're working with
-        val allImages = extractImageUrls(htmlContent)
-        println("DEBUG: Found ${allImages.size} images in content: $allImages")
+        // Process HTML entities first
+        var processedContent = preprocessHtmlEntities(htmlContent)
         
-        // Split by common HTML block elements
-        val blocks = htmlContent.split(Regex("""</?(?:p|div|h[1-6]|br)\s*[^>]*>"""))
-        println("DEBUG: Split into ${blocks.size} blocks")
+        // Find all image positions
+        val imgRegex = Regex("""<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>""")
+        val imageMatches = imgRegex.findAll(processedContent).toList()
         
-        for ((index, block) in blocks.withIndex()) {
-            val trimmedBlock = block.trim()
-            if (trimmedBlock.isEmpty()) continue
-            
-            println("DEBUG: Processing block $index: '${trimmedBlock.take(100)}'")
-            
-            // Check if this block contains images
-            val imgRegex = Regex("""<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>""")
-            val imgMatches = imgRegex.findAll(trimmedBlock)
-            
-            if (imgMatches.any()) {
-                println("DEBUG: Found ${imgMatches.count()} images in block $index")
-                
-                // Extract images first
-                for (match in imgMatches) {
-                    match.groupValues.getOrNull(1)?.let { imageUrl ->
-                        if (imageUrl.isNotBlank()) {
-                            println("DEBUG: Adding image element with URL: $imageUrl")
-                            elements.add(ContentElement.Image(imageUrl))
-                        } else {
-                            println("DEBUG: Skipping empty image URL")
-                        }
-                    }
-                }
-                
-                // Extract remaining text content and clean it properly
-                val textContent = trimmedBlock
-                    .replace(imgRegex, "") // Remove image tags
-                    .replace(Regex("<[^>]*>"), "") // Remove any remaining HTML tags
-                    .replace("&#8216;", "'") // Left single quotation mark
-                    .replace("&#8217;", "'") // Right single quotation mark
-                    .replace("&#8220;", "\"") // Left double quotation mark
-                    .replace("&#8221;", "\"") // Right double quotation mark
-                    .replace("&#8230;", "...") // Ellipsis
-                    .replace("&amp;", "&") // Ampersand
-                    .replace("&lt;", "<") // Less than
-                    .replace("&gt;", ">") // Greater than
-                    .replace("&nbsp;", " ") // Non-breaking space
-                    .replace(Regex("\\s+"), " ") // Collapse multiple spaces
-                    .trim()
-                
-                if (textContent.isNotEmpty()) {
-                    println("DEBUG: Adding text element: '${textContent.take(50)}'")
-                    elements.add(ContentElement.Text(textContent))
-                }
-            } else {
-            // Just text content - clean it properly
-                val cleanText = trimmedBlock
-                    .replace(Regex("<[^>]*>"), "") // Remove HTML tags
-                    .replace("&#8216;", "'") // Left single quotation mark
-                    .replace("&#8217;", "'") // Right single quotation mark
-                    .replace("&#8220;", "\"") // Left double quotation mark
-                    .replace("&#8221;", "\"") // Right double quotation mark
-                    .replace("&#8230;", "...") // Ellipsis
-                    .replace("&amp;", "&") // Ampersand
-                    .replace("&lt;", "<") // Less than
-                    .replace("&gt;", ">") // Greater than
-                    .replace("&nbsp;", " ") // Non-breaking space
-                    .replace(Regex("\\s+"), " ") // Collapse multiple spaces
-                    .trim()
-                
-                if (cleanText.isNotEmpty()) {
+        if (imageMatches.isEmpty()) {
+            // No images, just process as text
+            val cleanText = stripHtmlTags(processedContent)
+            if (cleanText.isNotBlank()) {
+                elements.add(ContentElement.Text(cleanText))
+            }
+            return elements
+        }
+        
+        // Process content sequentially to maintain original order
+        var currentPosition = 0
+        val processedImageUrls = mutableSetOf<String>() // Track processed images to avoid duplicates
+        
+        for (match in imageMatches) {
+            // Process text before this image
+            if (match.range.first > currentPosition) {
+                val textBefore = processedContent.substring(currentPosition, match.range.first)
+                val cleanText = stripHtmlTags(textBefore)
+                if (cleanText.isNotBlank()) {
                     println("DEBUG: Adding text element: '${cleanText.take(50)}'")
                     elements.add(ContentElement.Text(cleanText))
                 }
+            }
+            
+            // Process this image (avoid duplicates)
+            val imageUrl = match.groupValues.getOrNull(1)
+            if (imageUrl != null && imageUrl.isNotBlank() && !processedImageUrls.contains(imageUrl)) {
+                println("DEBUG: Adding image element with URL: $imageUrl")
+                elements.add(ContentElement.Image(imageUrl))
+                processedImageUrls.add(imageUrl)
+            }
+            
+            currentPosition = match.range.last + 1
+        }
+        
+        // Process remaining text after last image
+        if (currentPosition < processedContent.length) {
+            val textAfter = processedContent.substring(currentPosition)
+            val cleanText = stripHtmlTags(textAfter)
+            if (cleanText.isNotBlank()) {
+                println("DEBUG: Adding final text element: '${cleanText.take(50)}'")
+                elements.add(ContentElement.Text(cleanText))
             }
         }
         
@@ -133,6 +110,36 @@ object ContentImageProcessor {
         }
         
         return elements
+    }
+    
+    /**
+     * Preprocess HTML entities
+     */
+    private fun preprocessHtmlEntities(html: String): String {
+        return html
+            .replace("&#8216;", "'") // Left single quotation mark
+            .replace("&#8217;", "'") // Right single quotation mark
+            .replace("&#8220;", "\"") // Left double quotation mark
+            .replace("&#8221;", "\"") // Right double quotation mark
+            .replace("&#8230;", "...") // Ellipsis
+            .replace("&amp;", "&") // Ampersand
+            .replace("&lt;", "<") // Less than
+            .replace("&gt;", ">") // Greater than
+            .replace("&nbsp;", " ") // Non-breaking space
+            .replace("&quot;", "\"") // Quote
+            .replace("&#39;", "'") // Apostrophe
+            .replace("&#8211;", "–") // En dash
+            .replace("&#8212;", "—") // Em dash
+    }
+    
+    /**
+     * Strip HTML tags while preserving text content
+     */
+    private fun stripHtmlTags(html: String): String {
+        return html
+            .replace(Regex("<[^>]*>"), " ") // Remove HTML tags
+            .replace(Regex("\\s+"), " ") // Collapse multiple spaces
+            .trim()
     }
     
     /**
