@@ -20,6 +20,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../picchallengekey")
+            storePassword = "0782684837@Dk"
+            keyAlias = "picchallengekey"
+            keyPassword = "0782684837@Dk"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -27,7 +36,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Signing configuration removed - add new keystore when ready
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
