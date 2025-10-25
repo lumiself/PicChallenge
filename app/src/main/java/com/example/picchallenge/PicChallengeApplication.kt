@@ -1,12 +1,2 @@
-package com.example.picchallenge
-
-import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
-
-@HiltAndroidApp
-class PicChallengeApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        // Initialize any application-wide components here
-    }
-}
+// This file is intentionally left empty to avoid duplicate Application class declarations
+// The actual PicChallengeApplication is located in: app/src/main/java/com/picchallenge/app/PicChallengeApplication.kt

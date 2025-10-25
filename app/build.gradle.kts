@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.picchallenge"
+    namespace = "com.picchallenge.app"
     compileSdk = 36
     buildToolsVersion = "36.1"
 
     defaultConfig {
-        applicationId = "com.example.picchallenge"
+        applicationId = "com.picchallenge.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.picchallenge
+package com.picchallenge.app
 
 import android.content.Intent
 import android.os.Bundle
