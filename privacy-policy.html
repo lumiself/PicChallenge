@@ -60,27 +60,38 @@
         <p class="date">Last updated: October 8, 2025</p>
         
         <div class="highlight">
-            <strong>Key Point:</strong> PicChallenge is a view-only photo contest browsing application. We do not collect, store, or process any personal information from users.
+            <strong>Key Point:</strong> PicChallenge only collects data necessary for user login functionality. We do not collect any additional personal information beyond what is required for authentication.
         </div>
 
         <h2>1. Information We Collect</h2>
-        <p>PicChallenge does not collect any personal data from users. The app functions as a read-only browser for photography contests and does not require:</p>
+        <p>PicChallenge only collects personal data necessary for user login and authentication. The app requires:</p>
         <ul>
-            <li>User registration or login</li>
-            <li>Personal information input</li>
+            <li>Email address for account creation and login</li>
+            <li>Password for account security</li>
+            <li>Basic profile information (if provided during registration)</li>
+        </ul>
+        <p>We do not collect:</p>
+        <ul>
             <li>Device identification</li>
             <li>Location data</li>
-            <li>Contact information</li>
+            <li>Contact information beyond email</li>
+            <li>User-generated content</li>
         </ul>
 
         <h2>2. How We Use Information</h2>
-        <p>Since we do not collect any personal data, we do not use personal information for any purposes. The app simply displays publicly available photography contest content.</p>
+        <p>The login data we collect is used solely for:</p>
+        <ul>
+            <li>User authentication and account access</li>
+            <li>Account management and security</li>
+            <li>Personalizing the user experience within the app</li>
+        </ul>
+        <p>We do not use personal information for marketing purposes or share it with third parties.</p>
 
         <h2>3. Third-Party Services</h2>
         <p>The app connects to external WordPress APIs to display photo contest content. These connections are:</p>
         <ul>
-            <li><strong>Read-only:</strong> No data is sent to the servers except standard HTTP requests</li>
-            <li><strong>Anonymous:</strong> Requests do not include user identification</li>
+            <li><strong>Authenticated:</strong> API requests include user authentication tokens for personalized content</li>
+            <li><strong>Secure:</strong> All data transmission uses encrypted HTTPS connections</li>
             <li><strong>Public content:</strong> Only accesses publicly available contest information</li>
         </ul>
 
@@ -88,8 +99,9 @@
         <p>While no personal data is collected, we implement appropriate technical measures:</p>
         <ul>
             <li>Secure HTTPS connections to external APIs</li>
+            <li>Encrypted storage of authentication tokens</li>
             <li>Local image caching for performance (no personal data)</li>
-            <li>No data transmission of personal information</li>
+            <li>No data transmission of personal information beyond login credentials</li>
         </ul>
 
         <h2>5. Children's Privacy</h2>
@@ -106,7 +118,7 @@
         </div>
 
         <div class="highlight">
-            <strong>Summary:</strong> PicChallenge is designed with privacy as a core feature. By not collecting any personal data, we provide a worry-free experience for browsing photography contests focused on models and everyday life themes.
+            <strong>Summary:</strong> PicChallenge is designed with privacy as a core feature. We only collect the minimum data necessary for login functionality, providing a secure and personalized experience for browsing photography contests focused on models and everyday life themes.
         </div>
     </div>
 </body>
