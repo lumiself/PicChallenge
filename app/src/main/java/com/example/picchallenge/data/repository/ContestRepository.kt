@@ -18,13 +18,23 @@ class ContestRepository @Inject constructor(
         perPage: Int = 20,
         status: String = "active"
     ): NetworkResult<ContestResponse> {
+        println("DEBUG: ContestRepository - getContests() called with page: $page, perPage: $perPage, status: $status")
         return try {
+            println("DEBUG: ContestRepository - Calling apiService.getContests()")
             val response = apiService.getContests(page, perPage, status)
+            println("DEBUG: ContestRepository - API response received: isSuccessful=${response.isSuccessful}, code=${response.code()}")
+            
             if (response.isSuccessful) {
+                println("DEBUG: ContestRepository - Response successful, checking body")
                 response.body()?.let { contestResponse ->
+                    println("DEBUG: ContestRepository - Response body received with ${contestResponse.data.size} contests")
                     NetworkResult.Success(contestResponse)
-                } ?: NetworkResult.Error("Empty response body")
+                } ?: run {
+                    println("DEBUG: ContestRepository - Response body is null")
+                    NetworkResult.Error("Empty response body")
+                }
             } else {
+                println("DEBUG: ContestRepository - Response failed with code: ${response.code()}")
                 val errorMessage = when (response.code()) {
                     404 -> "WordPress API endpoint not found. Check your site URL and plugin installation."
                     401 -> "Authentication failed. Check JWT plugin configuration."
@@ -34,6 +44,8 @@ class ContestRepository @Inject constructor(
                 NetworkResult.Error(errorMessage)
             }
         } catch (e: Exception) {
+            println("DEBUG: ContestRepository - Exception caught: ${e.javaClass.simpleName}: ${e.message}")
+            e.printStackTrace()
             val errorMessage = when (e) {
                 is java.net.UnknownHostException -> "Cannot connect to server. Check your internet connection."
                 is java.net.SocketTimeoutException -> "Connection timeout. Server may be down or slow."

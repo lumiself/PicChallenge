@@ -62,7 +62,8 @@ fun ContestListScreen(
     val refreshDebounceMs = 1000L // 1 second debounce
 
     LaunchedEffect(Unit) {
-        contestViewModel.loadContests(status = "all")
+        println("DEBUG: ContestListScreen - Starting to load contests")
+        contestViewModel.loadContests()
     }
 
     // Debounced refresh function

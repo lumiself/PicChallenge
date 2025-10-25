@@ -31,9 +31,12 @@ object DynamicNetworkModule {
     ): Retrofit {
         val baseUrl = runBlocking {
             val mainUrl = settingsRepository.baseUrl.first()
+            println("DEBUG: Original base URL from settings: $mainUrl")
             // Construct the correct photo contest API base URL
             val cleanUrl = mainUrl.removeSuffix("/").removeSuffix("wp-json").removeSuffix("/")
-            "$cleanUrl/wp-json/photo-contest/v1/"
+            val finalUrl = "$cleanUrl/wp-json/photo-contest/v1/"
+            println("DEBUG: Final photo contest API URL: $finalUrl")
+            finalUrl
         }
         
         return Retrofit.Builder()

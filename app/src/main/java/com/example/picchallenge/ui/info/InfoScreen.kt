@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Rule
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -81,7 +82,7 @@ fun InfoScreen(
             PrivacyPolicySection(
                 onPrivacyPolicyClick = {
                     // Open privacy policy URL
-                    uriHandler.openUri("https://lumiself.co.zw/privacy-policy")
+                    uriHandler.openUri("https://lumiself.co.zw/privacy-policy.html")
                 }
             )
             
@@ -91,7 +92,17 @@ fun InfoScreen(
             TermsAndConditionsSection(
                 onTermsClick = {
                     // Open terms and conditions URL
-                    uriHandler.openUri("https://lumiself.co.zw/terms-and-conditions")
+                    uriHandler.openUri("https://lumiself.co.zw/terms-and-conditions.html")
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Account Deletion Section
+            AccountDeletionSection(
+                onAccountDeletionClick = {
+                    // Open account deletion URL
+                    uriHandler.openUri("https://lumiself.co.zw/account-deletion.html")
                 }
             )
             
@@ -421,6 +432,75 @@ private fun ContactInformationSection() {
                 label = "Response Time",
                 value = "Within 24-48 hours"
             )
+        }
+    }
+}
+
+@Composable
+private fun AccountDeletionSection(
+    onAccountDeletionClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Account Deletion",
+                    tint = StatusRed,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Account Deletion",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "You can request deletion of your account and associated data at any time. This action is permanent and cannot be undone.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            OutlinedButton(
+                onClick = onAccountDeletionClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = StatusRed
+                )
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Delete Account",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Request Account Deletion")
+            }
         }
     }
 }

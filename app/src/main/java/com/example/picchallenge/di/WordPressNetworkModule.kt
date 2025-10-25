@@ -26,9 +26,12 @@ object WordPressNetworkModule {
     ): Retrofit {
         val baseUrl = runBlocking {
             val mainUrl = settingsRepository.baseUrl.first()
+            println("DEBUG: WordPress - Original base URL from settings: $mainUrl")
             // Construct the correct WordPress API base URL
             val cleanUrl = mainUrl.removeSuffix("/").removeSuffix("wp-json").removeSuffix("/")
-            "$cleanUrl/wp-json/wp/v2/"
+            val finalUrl = "$cleanUrl/wp-json/wp/v2/"
+            println("DEBUG: WordPress - Final WordPress API URL: $finalUrl")
+            finalUrl
         }
         
         return Retrofit.Builder()

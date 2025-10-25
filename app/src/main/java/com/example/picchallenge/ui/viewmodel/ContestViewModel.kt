@@ -92,21 +92,30 @@ class ContestViewModel @Inject constructor(
         status: String = "all",
         isRefresh: Boolean = false
     ) {
+        println("DEBUG: ContestViewModel - loadContests() called with status: $status, page: $page")
         viewModelScope.launch {
             try {
+                println("DEBUG: ContestViewModel - Starting contest loading coroutine")
                 _isLoading.value = true
                 // Only set to Loading state if it's not a refresh (to keep existing data visible)
                 if (!isRefresh) {
+                    println("DEBUG: ContestViewModel - Setting contests to Loading state")
                     _contests.value = NetworkResult.Loading
                 }
+                println("DEBUG: ContestViewModel - Calling contestRepository.getContests()")
                 val result = contestRepository.getContests(page, perPage, status)
+                println("DEBUG: ContestViewModel - Repository returned result: $result")
                 _contests.value = result
+                println("DEBUG: ContestViewModel - Updated contests state with result")
             } catch (e: Exception) {
+                println("DEBUG: ContestViewModel - Exception caught: ${e.message}")
+                e.printStackTrace()
                 // Handle any exceptions that occur during the API call
                 _contests.value = NetworkResult.Error(
                     message = "Network error: ${e.message ?: "Unknown error occurred"}"
                 )
             } finally {
+                println("DEBUG: ContestViewModel - Finished loading contests")
                 _isLoading.value = false
             }
         }
