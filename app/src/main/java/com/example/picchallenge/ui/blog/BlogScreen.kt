@@ -46,7 +46,7 @@ fun BlogScreen(
                 TopAppBar(
                     title = { 
                         Text(
-                            "News & Updates",
+                            "Blog Posts",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface

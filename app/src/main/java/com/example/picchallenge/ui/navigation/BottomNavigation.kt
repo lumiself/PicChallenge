@@ -24,9 +24,9 @@ sealed class BottomNavItem(
         icon = Icons.Default.PhotoCamera
     )
     
-    object News : BottomNavItem(
+    object Posts : BottomNavItem(
         route = "blog",
-        title = "News",
+        title = "Posts",
         icon = Icons.Default.Article
     )
     
@@ -50,7 +50,7 @@ fun BottomNavigationBar(
 ) {
     val items = listOf(
         BottomNavItem.Contests,
-        BottomNavItem.News,
+        BottomNavItem.Posts,
         BottomNavItem.Info,
         BottomNavItem.Login
     )

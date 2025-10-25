@@ -75,8 +75,8 @@ fun MainScreenWithBottomNavigation() {
                 )
             }
             
-            // Blog/News Tab
-            composable(BottomNavItem.News.route) {
+            // Posts Tab
+            composable(BottomNavItem.Posts.route) {
                 BlogScreen(
                     onNavigateBack = {
                         navController.popBackStack()

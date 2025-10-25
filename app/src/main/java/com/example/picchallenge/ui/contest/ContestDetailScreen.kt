@@ -924,30 +924,48 @@ private fun ContestantItem(
             if (contestStatus.equals("active", ignoreCase = true)) {
                 when (voteEligibility) {
                     is VoteEligibilityResult.NotAllowed -> {
-                        // Show disabled button with restriction message
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.width(80.dp)
-                        ) {
-                            Surface(
+                        // Check if this is an authentication issue vs time restriction
+                        if (voteEligibility.reason.contains("login", ignoreCase = true) || 
+                            voteEligibility.reason.contains("authentication", ignoreCase = true)) {
+                            // Show login button for authentication issues
+                            Button(
+                                onClick = onVoteClick,
+                                modifier = Modifier.height(36.dp),
                                 shape = RoundedCornerShape(20.dp),
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Text(
-                                    "Voted",
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    "Login to Vote",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.error
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
-                            Text(
-                                text = voteEligibility.reason,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                textAlign = TextAlign.Center,
-                                maxLines = 2,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
+                        } else {
+                            // Show disabled button with restriction message for time-based restrictions
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.width(80.dp)
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                ) {
+                                    Text(
+                                        "Voted",
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                                Text(
+                                    text = voteEligibility.reason,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
                     }
                     else -> {
