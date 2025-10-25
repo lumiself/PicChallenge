@@ -133,12 +133,20 @@ object ContentImageProcessor {
     }
     
     /**
-     * Strip HTML tags while preserving text content
+     * Strip HTML tags while preserving text content and paragraph structure
      */
     private fun stripHtmlTags(html: String): String {
         return html
-            .replace(Regex("<[^>]*>"), " ") // Remove HTML tags
-            .replace(Regex("\\s+"), " ") // Collapse multiple spaces
+            // Convert paragraph and line break tags to newlines first
+            .replace(Regex("</?p[^>]*>"), "\n\n") // Paragraph tags become double newlines
+            .replace(Regex("<br[^>]*>"), "\n") // Line breaks become single newlines
+            .replace(Regex("</?div[^>]*>"), "\n") // Div tags become single newlines
+            // Remove all other HTML tags
+            .replace(Regex("<[^>]*>"), " ") // Remove remaining HTML tags
+            // Clean up excessive whitespace while preserving paragraph structure
+            .replace(Regex("\\n{3,}"), "\n\n") // Collapse 3+ newlines to double newline
+            .replace(Regex(" +"), " ") // Collapse multiple spaces to single space
+            .replace(Regex(" *\n *"), "\n") // Clean up spaces around newlines
             .trim()
     }
     

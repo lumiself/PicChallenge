@@ -72,8 +72,8 @@ fun InfoScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Contest Rules Section
-            ContestRulesSection()
+            // App Info Section
+            AppInfoSection()
             
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -104,7 +104,7 @@ fun InfoScreen(
 }
 
 @Composable
-private fun ContestRulesSection() {
+private fun AppInfoSection() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,13 +127,13 @@ private fun ContestRulesSection() {
             ) {
                 Icon(
                     imageVector = Icons.Default.Rule,
-                    contentDescription = "Contest Rules",
+                    contentDescription = "PicChallenge",
                     tint = PrimaryModern,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Contest Rules",
+                    text = "PicChallenge",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -145,38 +145,22 @@ private fun ContestRulesSection() {
             // Rules content
             RuleItem(
                 number = "1",
-                title = "App Purpose",
-                description = "PicChallenge is a publishing platform where all content is created and published by lumiself Studio. Users can browse contests, view photos, and vote on their favorite entries."
+                title = "About",
+                description = "PicChallenge, powered entirely by Lumiself Studios, offers a curated experience for the visually inclined. Users can enjoy expertly crafted articles covering lifestyle, fashion, and photography. The platform also features exclusive photo contests created by our professional photographers, allowing the community to vote for the winning images."
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
             RuleItem(
                 number = "2",
-                title = "Content Source",
-                description = "All photos and contest content are professionally created and curated by lumiself Studio. No user-generated content is collected or published through this app."
+                title = "Voting Rules",
+                description = "Voting can be done once every 24 hours, and the winning picture will be the one with the largest amount of votes at the end of each contest. Creating multiple accounts to vote is strictly prohibited."
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
             RuleItem(
                 number = "3",
-                title = "Voting Rules",
-                description = "Users can vote once per contestant per voting period. Voting frequency varies by contest (daily, weekly, or monthly). Creating multiple accounts to vote is strictly prohibited."
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            RuleItem(
-                number = "4",
-                title = "Contest Participation",
-                description = "Contests are open for viewing and voting by all app users. Winners are determined by community votes and announced after the contest ends."
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            RuleItem(
-                number = "5",
                 title = "Content Rights",
                 description = "All content is owned by lumiself Studio and is displayed for viewing and voting purposes only. Content may not be downloaded or redistributed without permission."
             )

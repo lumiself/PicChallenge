@@ -41,6 +41,7 @@ fun EnhancedArticleContent(
 
 /**
  * Processes content to extract and display images inline with text
+ * Enhanced with better spacing for improved readability
  */
 @Composable
 private fun ContentWithImages(
@@ -52,30 +53,53 @@ private fun ContentWithImages(
     }
     
     Column(modifier = modifier.fillMaxWidth()) {
-        elements.forEach { element: ContentElement ->
+        elements.forEachIndexed { index, element ->
             when (element) {
                 is ContentElement.Text -> {
                     if (element.content.isNotBlank()) {
+                        // Split text by paragraphs to maintain proper spacing
+                        val paragraphs = element.content.split("\n\n").filter { it.isNotBlank() }
+                        
+                        paragraphs.forEach { paragraph ->
                         Text(
-                            text = element.content,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            lineHeight = 24.sp,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            text = paragraph.trim(),
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                letterSpacing = 0.15.sp, // Slight letter spacing for better readability
+                                fontWeight = FontWeight.Normal
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f), // Slightly softer color
+                            lineHeight = 26.sp, // Slightly increased line height for better readability
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    top = if (index == 0) 0.dp else 12.dp, // Less space at top of first element
+                                    bottom = 8.dp, // More space after paragraphs
+                                    start = 4.dp, // Small horizontal padding
+                                    end = 4.dp
+                                )
                         )
+                        }
                     }
                 }
                 is ContentElement.Image -> {
-                    // Use EnhancedImage for fast loading like contest images
-                    com.example.picchallenge.ui.components.EnhancedImage(
-                        imageUrl = element.url,
-                        contentDescription = "Article image",
+                    // Use EnhancedImage for fast loading like contest images with 3:4 aspect ratio
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(250.dp) // Good size for inline images
-                            .padding(vertical = 8.dp),
-                        contentScale = ContentScale.Crop
-                    )
+                            .padding(
+                                vertical = 16.dp, // More space around images
+                                horizontal = 4.dp
+                            )
+                    ) {
+                        com.example.picchallenge.ui.components.EnhancedImage(
+                            imageUrl = element.url,
+                            contentDescription = "Article image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(3f / 4f), // 3:4 aspect ratio
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }
